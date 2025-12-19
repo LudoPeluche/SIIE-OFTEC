@@ -1,4 +1,4 @@
-# MTTO MVP (Frontend)
+# MTTO
 
 App MVP (solo frontend) para:
 - Plan Semanal (matriz estilo Excel)
