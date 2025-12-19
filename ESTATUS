@@ -1,0 +1,45 @@
+ESTATUS — Objetivo y guía rápida (léeme siempre antes de tocar el código)
+
+OBJETIVO GENERAL
+Construir una app (Android-first, tipo PWA) para gestionar 3 módulos:
+1) Plan Semanal (registro semanal estilo Excel con técnicos por fila)
+2) Órdenes de Trabajo (OT) con flujo: Planificar → Asignar → Ejecutar → Cerrar
+3) Horas Extras (registro y cálculo; en MVP independiente, luego vincular a OT)
+
+ESTADO ACTUAL (MVP FRONTEND)
+✅ Frontend base con React/Vite + navegación por módulos.
+✅ Pantallas MVP con datos “mock” (sin Firebase aún):
+- Plan Semanal: tabla editable + check de técnicos + import CSV básico.
+- OT: listado + crear OT + cambiar estado (mock).
+- Horas Extra: formulario + cálculo simple de horas.
+- KPIs: vista demo (mock).
+- Admin: placeholder (mock).
+
+QUÉ HACE LA APP (MVP)
+- Muestra cómo se verá el flujo en el celular.
+- Permite probar UX y pantallas antes de integrar Firebase.
+- Sirve para acordar campos mínimos y estados, sin gastar tiempo en backend todavía.
+
+PRÓXIMOS PASOS (cuando el MVP visual esté aprobado)
+1) Integrar Firebase Auth (Google) + roles (admin/planner/tech).
+2) Persistir en Firestore:
+   - weeklyPlans, workOrders, woEvents, users, clients, catalogs
+3) Notificaciones Android:
+   - FCM web + Service Worker + Cloud Function onAssign
+4) Reglas Firestore + bitácora inmutable (woEvents).
+5) Export a Excel/PDF (si se requiere).
+
+REGLA DE ORO
+No mezclar todo en una sola pantalla. Son 3 módulos distintos pero conectables:
+- Plan Semanal da visibilidad rápida.
+- OT da trazabilidad y cierre serio.
+- Horas Extra controla lo laboral.
+
+NOTA
+Este repo está preparado para verse lindo y rápido en local.
+No hay “backend” todavía, por diseño: primero validamos el layout y el flujo.
+
+Cómo correr en local
+1) npm install
+2) npm run dev
+3) abrir http://localhost:5173
