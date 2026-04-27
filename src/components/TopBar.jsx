@@ -1,33 +1,35 @@
-export default function TopBar({ title, role, roles = [], onRoleChange, tech, techs = [], onTechChange }){
+export default function TopBar({ title, tech, onLogout }) {
+
   return (
     <div className="topbar-inner">
       <div className="brand">
-        <span style={{fontSize:18}}>SIIE-OFTEC</span>
-        <span>{title}</span>
-        <span className="badge">MVP Frontend</span>
+        <img className="brand-logo" src="/siiewcim.png" alt="SIIEWCIM" />
+        <div className="brand-text">
+          <div className="brand-title">SIIE-OFTEC</div>
+          <div className="brand-subtitle">{title}</div>
+        </div>
       </div>
-      <div style={{display:'flex', gap:8, alignItems:'center', flexWrap:'wrap'}}>
-        <div className="badge">Android-first PWA</div>
-        {roles.length > 0 && onRoleChange && (
-          <select
-            className="input"
-            value={role}
-            onChange={(e)=>onRoleChange(e.target.value)}
-            style={{minWidth:150}}
-          >
-            {roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-          </select>
-        )}
-        {role === 'TECH' && onTechChange && (
-          <select
-            className="input"
-            value={tech}
-            onChange={(e)=>onTechChange(e.target.value)}
-            style={{minWidth:180}}
-          >
-            {techs.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        )}
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          lineHeight: 1.3,
+          padding: '8px 13px',
+          background: 'rgba(16,185,129,0.1)',
+          border: '1px solid rgba(16,185,129,0.25)',
+          borderRadius: 12,
+          boxShadow: '0 2px 8px rgba(16,185,129,0.15)'
+        }}>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#10b981', letterSpacing: '0.3px' }}>{tech}</span>
+        </div>
+        <button
+          onClick={onLogout}
+          className="btn danger"
+          style={{ padding: '10px 16px', fontSize: 13, fontWeight: 700 }}
+        >
+          Salir
+        </button>
       </div>
     </div>
   )

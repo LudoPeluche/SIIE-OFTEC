@@ -1,17 +1,25 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Papa from 'papaparse'
 import Modal from '../components/Modal.jsx'
 import Chip from '../components/Chip.jsx'
 import { nowISODate } from '../lib/utils.js'
+import { listWeeklyPlan, upsertWeeklyRow, deleteWeeklyRow } from '../lib/weeklyPlanService.js'
 
 const TECHS = ['LUDWIN CABA', 'JESSE PORRAS', 'BRAYAN IBARRA', 'DIEGO ORTUÑO']
+const PRIORITIES = ['ALTA', 'MEDIA', 'BAJA']
+const PRIORITY_LABEL = { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' }
+const PRIORITY_TONE = { ALTA: 'bad', MEDIA: 'warn', BAJA: 'blue' }
+const TIPOS = ['SERVICIO', 'INTERNO']
+const TIPO_LABEL = { SERVICIO: 'Servicio', INTERNO: 'Tarea Interna' }
+const TIPO_TONE = { SERVICIO: 'blue', INTERNO: 'ok' }
 
 const LEGACY_TECH_MAP = {
   LUDWIN:'LUDWIN CABA',
   JESSE:'JESSE PORRAS',
   BRAYAN:'BRAYAN IBARRA',
-  DIEGO:'DIEGO ORTUÑO'
+  DIEGO:'DIEGO ORTUÑO',
+  ORTUNO:'DIEGO ORTUÑO'
 }
 
 function normalizeAssigned(assigned){
@@ -24,48 +32,71 @@ function normalizeAssigned(assigned){
   return base
 }
 
-const seedRows = [
-  { numero:'1', empresa:'TECNOPOR', tarea:'PLAN DE MANTENIMIENTO', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':false,'BRAYAN IBARRA':false,'DIEGO ORTUÑO':true}, status:'PENDIENTE' },
-  { numero:'2', empresa:'EMPACAR', tarea:'MONTAR 2DO REDUCTOR', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':true,'BRAYAN IBARRA':true,'DIEGO ORTUÑO':false}, status:'EN_PROCESO' },
-  { numero:'2', empresa:'EMPACAR', tarea:'INFORME DEL MONTAJE', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':true,'BRAYAN IBARRA':true,'DIEGO ORTUÑO':false}, status:'PENDIENTE' },
-  { numero:'2', empresa:'EMPACAR', tarea:'SEGUIMIENTO AL CAMBIO DE RODAMIENTO EXTRACTOR MAC', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':false,'BRAYAN IBARRA':false,'DIEGO ORTUÑO':true}, status:'PENDIENTE' },
-  { numero:'3', empresa:'SOFIA', tarea:'CAMBIO DE POLEA', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':false,'BRAYAN IBARRA':false,'DIEGO ORTUÑO':false}, status:'PENDIENTE' },
-  { numero:'3', empresa:'SOFIA', tarea:'CAMBIO DE CILINDRO', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':true,'BRAYAN IBARRA':true,'DIEGO ORTUÑO':false}, status:'PENDIENTE' },
-  { numero:'4', empresa:'G77', tarea:'TRASLADO', assigned:{'LUDWIN CABA':false,'JESSE PORRAS':true,'BRAYAN IBARRA':true,'DIEGO ORTUÑO':true}, status:'PENDIENTE' },
-]
+const seedRows = []
 
 export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
   const navigate = useNavigate()
   const [weekStart, setWeekStart] = useState(nowISODate())
   const [rows, setRows] = useState(seedRows)
   const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState({ numero:'', empresa:'', tarea:'' })
-  const storageKey = 'planSemanalRows'
+  const [draft, setDraft] = useState({ empresa:'', tarea:'', prioridad: 'MEDIA', tipo: 'SERVICIO' })
+  const [filterPrioridad, setFilterPrioridad] = useState('ALL')
+  const [filterTipo, setFilterTipo] = useState('ALL')
+  const [filterStatus, setFilterStatus] = useState('ALL')
+  const legacyStorageKey = 'planSemanalRowsV2'
   const [booting, setBooting] = useState(true)
   const [dragIdx, setDragIdx] = useState(null)
+  const notaTimers = useRef({})
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey)
-    if(saved){
+    let active = true
+    async function fetchRemote(){
       try{
-        const parsed = JSON.parse(saved)
-        if(Array.isArray(parsed)) {
-          // migrar rows antiguos sin status/done
-          const migrated = parsed.map(r => ({
-            ...r,
-            status: r.status || (r.done ? 'COMPLETADO' : 'PENDIENTE'),
-            assigned: normalizeAssigned(r.assigned),
-            done: undefined
-          }))
-          setRows(migrated)
+        const data = await listWeeklyPlan()
+        if(!active) return
+        let normalized = (Array.isArray(data) ? data : []).map(r => ({
+          ...r,
+          status: r.status || (r.done ? 'COMPLETADO' : 'PENDIENTE'),
+          assigned: normalizeAssigned(r.assigned),
+          prioridad: r.prioridad || 'MEDIA',
+          tipo: r.tipo || 'SERVICIO',
+          nota: String(r.nota || ''),
+          done: undefined
+        }))
+        if(normalized.length === 0){
+          const saved = localStorage.getItem(legacyStorageKey)
+          if(saved){
+            try{
+              const parsed = JSON.parse(saved)
+              if(Array.isArray(parsed) && parsed.length){
+                const payloads = parsed.map(r => ({
+                  numero: String(r.numero || '').trim(),
+                  empresa: String(r.empresa || '').trim().toUpperCase(),
+                  tarea: String(r.tarea || '').trim().toUpperCase(),
+                  assigned: normalizeAssigned(r.assigned),
+                  status: r.status || (r.done ? 'COMPLETADO' : 'PENDIENTE'),
+                  prioridad: r.prioridad || 'MEDIA',
+                  nota: String(r.nota || '')
+                }))
+                const inserted = await Promise.all(payloads.map(p => upsertWeeklyRow(p)))
+                normalized = inserted.filter(Boolean).map(r => ({
+                  ...r,
+                  status: r.status || 'PENDIENTE',
+                  assigned: normalizeAssigned(r.assigned),
+                  prioridad: r.prioridad || 'MEDIA',
+                  tipo: r.tipo || 'SERVICIO',
+                  nota: String(r.nota || '')
+                }))
+              }
+            }catch(_){}
+          }
         }
+        setRows(normalized)
       }catch(_){}
     }
+    fetchRemote()
+    return () => { active = false }
   }, [])
-
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(rows))
-  }, [rows])
 
   useEffect(() => {
     const id = setTimeout(()=>setBooting(false), 200)
@@ -82,6 +113,14 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
     return c
   }, [rows])
 
+  const filteredRows = useMemo(() => {
+    return rows
+      .map((r, idx) => ({ ...r, _idx: idx }))
+      .filter(r => filterPrioridad === 'ALL' || r.prioridad === filterPrioridad)
+      .filter(r => filterTipo === 'ALL' || r.tipo === filterTipo)
+      .filter(r => filterStatus === 'ALL' || r.status === filterStatus)
+  }, [rows, filterPrioridad, filterTipo, filterStatus])
+
   const isTech = role === 'TECH'
   const myPendings = useMemo(() => {
     if(!tech) return []
@@ -91,32 +130,114 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
       .filter(r => r.status !== 'COMPLETADO')
   }, [rows, tech])
 
+  async function saveRow(row){
+    try{
+      const payload = {
+        id: row.id,
+        numero: row.numero,
+        empresa: row.empresa,
+        tarea: row.tarea,
+        assigned: row.assigned,
+        status: row.status,
+        prioridad: row.prioridad,
+        tipo: row.tipo || 'SERVICIO',
+        nota: String(row.nota || '')
+      }
+      const saved = await upsertWeeklyRow(payload)
+      if(saved?.id){
+        setRows(prev => prev.map(r => r.id === saved.id ? {
+          ...saved,
+          status: saved.status || 'PENDIENTE',
+          assigned: normalizeAssigned(saved.assigned),
+          prioridad: saved.prioridad || 'MEDIA',
+          tipo: saved.tipo || 'SERVICIO',
+          nota: String(saved.nota || '')
+        } : r))
+      }
+    }catch(_){}
+  }
+
   function toggle(rowIdx, tech){
-    setRows(prev => prev.map((r, i) => {
-      if(i !== rowIdx) return r
-      return { ...r, assigned: { ...r.assigned, [tech]: !r.assigned?.[tech] } }
-    }))
+    setRows(prev => {
+      const target = prev[rowIdx]
+      if(!target) return prev
+      const next = { ...target, assigned: { ...target.assigned, [tech]: !target.assigned?.[tech] } }
+      saveRow(next)
+      return prev.map((r, i) => i === rowIdx ? next : r)
+    })
   }
 
   function setStatus(rowIdx, status){
-    setRows(prev => prev.map((r, i) => i === rowIdx ? { ...r, status } : r))
+    setRows(prev => {
+      const target = prev[rowIdx]
+      if(!target) return prev
+      const next = { ...target, status }
+      saveRow(next)
+      return prev.map((r, i) => i === rowIdx ? next : r)
+    })
   }
 
-  function addRow(){
-    if(!draft.empresa.trim() || !draft.tarea.trim()) return
-    setRows(prev => [
-      ...prev,
-      { numero: draft.numero.trim(), empresa: draft.empresa.trim().toUpperCase(), tarea: draft.tarea.trim().toUpperCase(),
-        assigned: Object.fromEntries(TECHS.map(t => [t, false])),
-        status: 'PENDIENTE'
+  function setNota(rowIdx, nota, persist = false){
+    setRows(prev => {
+      const target = prev[rowIdx]
+      if(!target) return prev
+      const next = { ...target, nota }
+      const key = target.id || rowIdx
+      if(notaTimers.current[key]) clearTimeout(notaTimers.current[key])
+      if(persist){
+        delete notaTimers.current[key]
+        saveRow(next)
+      } else {
+        notaTimers.current[key] = setTimeout(() => saveRow(next), 1000)
       }
-    ])
-    setDraft({ numero:'', empresa:'', tarea:'' })
-    setOpen(false)
+      return prev.map((r, i) => i === rowIdx ? next : r)
+    })
+  }
+
+  function nextNumero() {
+    const numbers = rows
+      .map(r => Number(String(r.numero || '').replace(/\D/g, '')))
+      .filter(n => Number.isFinite(n) && n > 0)
+    const next = numbers.length ? Math.max(...numbers) + 1 : rows.length + 1
+    return String(next)
+  }
+
+  async function addRow(){
+    if(!draft.empresa.trim() || !draft.tarea.trim()) return
+    const payload = {
+      numero: nextNumero(),
+      empresa: draft.empresa.trim().toUpperCase(),
+      tarea: draft.tarea.trim().toUpperCase(),
+      assigned: Object.fromEntries(TECHS.map(t => [t, false])),
+      status: 'PENDIENTE',
+      prioridad: draft.prioridad || 'MEDIA',
+      tipo: draft.tipo || 'SERVICIO',
+      nota: ''
+    }
+    try{
+      const saved = await upsertWeeklyRow(payload)
+      if(saved){
+        const normalized = {
+          ...saved,
+          status: saved.status || 'PENDIENTE',
+          assigned: normalizeAssigned(saved.assigned),
+          prioridad: saved.prioridad || 'MEDIA',
+          tipo: saved.tipo || 'SERVICIO',
+          nota: String(saved.nota || '')
+        }
+        setRows(prev => [...prev, normalized])
+      }
+      setDraft({ empresa:'', tarea:'', prioridad: 'MEDIA', tipo: 'SERVICIO' })
+      setOpen(false)
+    }catch(_){}
   }
 
   function removeRow(idx){
-    setRows(prev => prev.filter((_, i) => i !== idx))
+    setRows(prev => {
+      const target = prev[idx]
+      if(target?.id) deleteWeeklyRow(target.id).catch(() => {})
+      return prev.filter((_, i) => i !== idx)
+    })
   }
 
   function createOTFromRow(row){
@@ -128,7 +249,7 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
       responsable: '',
       fechaPlan: weekStart,
       fechaCompromiso: weekStart,
-      prioridad: 'MEDIA'
+      prioridad: row.prioridad || 'MEDIA'
     }
     localStorage.setItem('prefillOT', JSON.stringify(payload))
     navigate('/ot')
@@ -167,11 +288,26 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
             empresa: String(d['EMPRESA'] ?? d['empresa'] ?? '').trim().toUpperCase(),
             tarea: String(d['TAREA'] ?? d['tarea'] ?? '').trim().toUpperCase(),
             assigned,
-            status: 'PENDIENTE'
+            status: 'PENDIENTE',
+            prioridad: 'MEDIA',
+            nota: String(d['NOTA'] ?? d['nota'] ?? d['OBS'] ?? d['OBSERVACION'] ?? d['OBSERVACIÓN'] ?? '').trim()
           }
         }).filter(r => r.empresa && r.tarea)
 
-        if(newRows.length) setRows(newRows)
+        if(newRows.length){
+          Promise.all(newRows.map(r => upsertWeeklyRow(r))).then((saved) => {
+            const normalized = saved
+              .filter(Boolean)
+              .map(r => ({
+                ...r,
+                status: r.status || 'PENDIENTE',
+                assigned: normalizeAssigned(r.assigned),
+                prioridad: r.prioridad || 'MEDIA',
+                nota: String(r.nota || '')
+              }))
+            if(normalized.length) setRows(normalized)
+          }).catch(() => {})
+        }
       }
     })
   }
@@ -185,7 +321,7 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
             <p className="muted" style={{margin:'8px 0 0 0'}}>
               Matriz estilo Excel (empresa + tarea + técnicos). Ideal para visibilidad rápida.
             </p>
-            <p className="muted" style={{margin:'6px 0 0 0'}}>Se guarda automáticamente en este navegador (localStorage).</p>
+            <p className="muted" style={{margin:'6px 0 0 0'}}>Se guarda automáticamente y se comparte en Supabase.</p>
           </div>
           <Chip tone="blue">Semana (MVP)</Chip>
         </div>
@@ -207,7 +343,9 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
         </div>
 
         <div className="row" style={{marginTop:12}}>
-          <button className="btn primary" onClick={()=>setOpen(true)}>+ Nueva fila</button>
+          <button className="btn primary" onClick={()=>setOpen(true)}>
+            + Nueva fila
+          </button>
           <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
             {TECHS.map(t => (
               <span className="chip" key={t}>
@@ -256,7 +394,55 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
           <div className="col-12 card">
         <div className="row" style={{marginBottom:10}}>
           <h2 style={{margin:0}}>Registro</h2>
-          <span className="muted">{rows.length} filas</span>
+          <span className="muted">{filteredRows.length} / {rows.length} filas</span>
+        </div>
+
+        {/* Filtros */}
+        <div style={{display:'flex', gap:16, flexWrap:'wrap', marginBottom:12, alignItems:'center'}}>
+          <div style={{display:'flex', gap:6, alignItems:'center'}}>
+            <span className="muted" style={{fontSize:12}}>Tipo:</span>
+            {['ALL', ...TIPOS].map(t => (
+              <button
+                key={t}
+                className={`btn${filterTipo === t ? ' primary' : ''}`}
+                style={{padding:'3px 10px', fontSize:12}}
+                onClick={() => setFilterTipo(t)}
+              >
+                {t === 'ALL' ? 'Todos' : TIPO_LABEL[t]}
+              </button>
+            ))}
+          </div>
+          <div style={{display:'flex', gap:6, alignItems:'center'}}>
+            <span className="muted" style={{fontSize:12}}>Prioridad:</span>
+            {['ALL', ...PRIORITIES].map(p => (
+              <button
+                key={p}
+                className={`btn${filterPrioridad === p ? ' primary' : ''}`}
+                style={{padding:'3px 10px', fontSize:12}}
+                onClick={() => setFilterPrioridad(p)}
+              >
+                {p === 'ALL' ? 'Todas' : PRIORITY_LABEL[p]}
+              </button>
+            ))}
+          </div>
+          <div style={{display:'flex', gap:6, alignItems:'center'}}>
+            <span className="muted" style={{fontSize:12}}>Estado:</span>
+            {[
+              { value: 'ALL',        label: 'Todos'      },
+              { value: 'PENDIENTE',  label: 'Pendiente'  },
+              { value: 'EN_PROCESO', label: 'En proceso' },
+              { value: 'COMPLETADO', label: 'Completado' },
+            ].map(s => (
+              <button
+                key={s.value}
+                className={`btn${filterStatus === s.value ? ' primary' : ''}`}
+                style={{padding:'3px 10px', fontSize:12}}
+                onClick={() => setFilterStatus(s.value)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="table-wrap">
@@ -266,7 +452,9 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
                 <th style={{width:70}}>Nro</th>
                 <th style={{width:160}}>Empresa</th>
                 <th>Tarea</th>
+                <th style={{width:110}}>Tipo</th>
                 <th style={{width:110}}>Estado</th>
+                <th style={{width:110}}>Prioridad</th>
                 {TECHS.map(t => <th key={t} style={{width:110}}>{t}</th>)}
                 <th style={{width:260}}>Acción</th>
               </tr>
@@ -276,14 +464,16 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
                 <>
                   {[1,2,3].map(k => (
                     <tr key={`sk-${k}`} className="skeleton-row">
-                      <td colSpan={4+TECHS.length} style={{padding:0}}>
+                      <td colSpan={5+TECHS.length} style={{padding:0}}>
                         <div className="skeleton-line"></div>
                       </td>
                     </tr>
                   ))}
                 </>
               )}
-              {!booting && rows.map((r, idx) => (
+              {!booting && filteredRows.map((r) => {
+                const idx = r._idx
+                return (
                 <tr
                   key={idx}
                   draggable
@@ -296,8 +486,18 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
                   <td>{r.empresa}</td>
                   <td>{r.tarea}</td>
                   <td>
+                    <Chip tone={TIPO_TONE[r.tipo] ?? 'blue'}>
+                      {TIPO_LABEL[r.tipo] ?? 'Servicio'}
+                    </Chip>
+                  </td>
+                  <td>
                     <Chip tone={r.status === 'COMPLETADO' ? 'ok' : r.status === 'EN_PROCESO' ? 'warn' : 'blue'}>
                       {r.status?.replace('_',' ') || 'PENDIENTE'}
+                    </Chip>
+                  </td>
+                  <td>
+                    <Chip tone={PRIORITY_TONE[r.prioridad] ?? 'warn'}>
+                      {PRIORITY_LABEL[r.prioridad] ?? 'Media'}
                     </Chip>
                   </td>
                   {TECHS.map(t => (
@@ -311,21 +511,30 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
                   ))}
                   <td>
                     <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
-                      <button className="btn" onClick={()=>moveRow(idx, Math.max(0, idx-1))}>↑</button>
-                      <button className="btn" onClick={()=>moveRow(idx, Math.min(rows.length-1, idx+1))}>↓</button>
+                      <select className="input" value={r.tipo || 'SERVICIO'} onChange={(e)=>{ const next={...r,tipo:e.target.value}; saveRow(next); setRows(prev=>prev.map((x,i)=>i===idx?next:x)) }}>
+                        {TIPOS.map(tp => <option key={tp} value={tp}>{TIPO_LABEL[tp]}</option>)}
+                      </select>
                       <select className="input" value={r.status || 'PENDIENTE'} onChange={(e)=>setStatus(idx, e.target.value)}>
                         <option value="PENDIENTE">Pendiente</option>
                         <option value="EN_PROCESO">En proceso</option>
                         <option value="COMPLETADO">Completado</option>
                       </select>
                       <button className="btn" onClick={()=>createOTFromRow(r)}>Crear OT</button>
-                      <button className="btn danger" onClick={()=>removeRow(idx)}>Borrar</button>
+                      <textarea
+                        className="input"
+                        rows={2}
+                        placeholder="Nota de la tarea..."
+                        style={{width:'100%', minHeight:62, resize:'vertical'}}
+                        value={r.nota || ''}
+                        onChange={(e)=>setNota(idx, e.target.value, false)}
+                        onBlur={(e)=>setNota(idx, e.target.value, true)}
+                      />
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
               {!rows.length && (
-                <tr><td colSpan={4+TECHS.length} className="muted">Sin filas</td></tr>
+                <tr><td colSpan={6+TECHS.length} className="muted">Sin filas</td></tr>
               )}
             </tbody>
           </table>
@@ -338,19 +547,20 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
         {booting && (
           <div className="skeleton-line" style={{marginBottom:8}}></div>
         )}
-        {!booting && rows.map((r, idx) => (
+        {!booting && filteredRows.map((r) => {
+          const idx = r._idx
+          return (
           <div key={`card-${idx}`} className="card" style={{marginBottom:10, background:'rgba(255,255,255,0.02)'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:8, flexWrap:'wrap'}}>
               <div>
-                <div className="muted">#{r.numero} · {r.empresa}</div>
+                <div className="muted">#{r.numero} - {r.empresa}</div>
                 <div style={{fontWeight:700, marginTop:4}}>{r.tarea}</div>
-                <Chip tone={r.status === 'COMPLETADO' ? 'ok' : r.status === 'EN_PROCESO' ? 'warn' : 'blue'}>
-                  {r.status?.replace('_',' ') || 'PENDIENTE'}
-                </Chip>
-              </div>
-              <div style={{display:'flex', gap:6}}>
-                <button className="btn" onClick={()=>moveRow(idx, Math.max(0, idx-1))}>↑</button>
-                <button className="btn" onClick={()=>moveRow(idx, Math.min(rows.length-1, idx+1))}>↓</button>
+                <div style={{display:'flex', gap:6, marginTop:4, flexWrap:'wrap'}}>
+                  <Chip tone={TIPO_TONE[r.tipo] ?? 'blue'}>{TIPO_LABEL[r.tipo] ?? 'Servicio'}</Chip>
+                  <Chip tone={r.status === 'COMPLETADO' ? 'ok' : r.status === 'EN_PROCESO' ? 'warn' : 'blue'}>
+                    {r.status?.replace('_',' ') || 'PENDIENTE'}
+                  </Chip>
+                </div>
               </div>
             </div>
             <div style={{marginTop:10, display:'flex', gap:8, flexWrap:'wrap'}}>
@@ -362,24 +572,38 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
               ))}
             </div>
             <div style={{display:'flex', gap:8, flexWrap:'wrap', marginTop:10}}>
+              <Chip tone={PRIORITY_TONE[r.prioridad] ?? 'warn'}>
+                {PRIORITY_LABEL[r.prioridad] ?? 'Media'}
+              </Chip>
+              <select className="input" value={r.tipo || 'SERVICIO'} onChange={(e)=>{ const next={...r,tipo:e.target.value}; saveRow(next); setRows(prev=>prev.map((x,i)=>i===idx?next:x)) }}>
+                {TIPOS.map(tp => <option key={tp} value={tp}>{TIPO_LABEL[tp]}</option>)}
+              </select>
               <select className="input" value={r.status || 'PENDIENTE'} onChange={(e)=>setStatus(idx, e.target.value)}>
                 <option value="PENDIENTE">Pendiente</option>
                 <option value="EN_PROCESO">En proceso</option>
                 <option value="COMPLETADO">Completado</option>
               </select>
               <button className="btn" onClick={()=>createOTFromRow(r)}>Crear OT</button>
-              <button className="btn danger" onClick={()=>removeRow(idx)}>Borrar</button>
+              <textarea
+                className="input"
+                rows={2}
+                placeholder="Nota de la tarea..."
+                style={{width:'100%', minHeight:62, resize:'vertical'}}
+                value={r.nota || ''}
+                onChange={(e)=>setNota(idx, e.target.value, false)}
+                onBlur={(e)=>setNota(idx, e.target.value, true)}
+              />
             </div>
           </div>
-        ))}
-        {!booting && !rows.length && <div className="muted">Sin filas</div>}
+        )})}
+        {!booting && !filteredRows.length && <div className="muted">{rows.length ? 'Sin resultados para los filtros.' : 'Sin filas'}</div>}
       </div>
 
       <Modal open={open} title="Nueva fila de Plan Semanal" onClose={()=>setOpen(false)}>
         <div className="grid">
           <div className="col-4 field">
             <label>Nro</label>
-            <input className="input" value={draft.numero} onChange={(e)=>setDraft(d=>({...d,numero:e.target.value}))} placeholder="Ej: 2" />
+            <input className="input" value={nextNumero()} readOnly />
           </div>
           <div className="col-4 field">
             <label>Empresa</label>
@@ -388,6 +612,18 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
           <div className="col-12 field">
             <label>Tarea</label>
             <input className="input" value={draft.tarea} onChange={(e)=>setDraft(d=>({...d,tarea:e.target.value}))} placeholder="Ej: CAMBIO DE POLEA" />
+          </div>
+          <div className="col-4 field">
+            <label>Tipo</label>
+            <select className="input" value={draft.tipo} onChange={(e)=>setDraft(d=>({...d,tipo:e.target.value}))}>
+              {TIPOS.map(t => <option key={t} value={t}>{TIPO_LABEL[t]}</option>)}
+            </select>
+          </div>
+          <div className="col-4 field">
+            <label>Prioridad</label>
+            <select className="input" value={draft.prioridad} onChange={(e)=>setDraft(d=>({...d,prioridad:e.target.value}))}>
+              {PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>)}
+            </select>
           </div>
         </div>
 
@@ -399,3 +635,5 @@ export default function PlanSemanal({ role = 'ADMIN', tech = '' }){
     </div>
   )
 }
+
+

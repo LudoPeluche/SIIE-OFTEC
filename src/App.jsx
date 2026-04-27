@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import BottomNav from './components/BottomNav.jsx'
 import TopBar from './components/TopBar.jsx'
+import LoginScreen from './components/LoginScreen.jsx'
 
 import Dashboard from './pages/Dashboard.jsx'
 import PlanSemanal from './pages/PlanSemanal.jsx'
@@ -9,30 +11,24 @@ import WorkOrders from './pages/WorkOrders.jsx'
 import HorasExtra from './pages/HorasExtra.jsx'
 import Admin from './pages/Admin.jsx'
 
-const ROLES = [
-  { id:'ADMIN', label:'Jefe' },
-  { id:'PLANNER', label:'Planner' },
-  { id:'TECH', label:'Técnico' }
-]
-
-const TECHS = [
-  'LUDWIN CABA',
-  'JESSE PORRAS',
-  'DIEGO ORTUÑO',
-  'BRAYAN IBARRA',
-  'JUAN CARLOS SALGUEIRO'
-]
-
-export default function App(){
+function AppContent() {
   const location = useLocation()
-  const [role, setRole] = useState(() => {
-    const saved = localStorage.getItem('mockRole')
-    return saved || 'ADMIN'
-  })
-  const [activeTech, setActiveTech] = useState(() => {
-    const saved = localStorage.getItem('mockTech')
-    return saved || TECHS[0]
-  })
+  const { user, role, loading, signOut } = useAuth()
+
+  // Basic spinner while checking auth
+  if (loading) {
+    return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Cargando...</div>
+  }
+
+  // If not authenticated, show login
+  if (!user) {
+    return <LoginScreen />
+  }
+
+  // Derived user name from metadata or context
+  // Note: We updated AuthContext to patch user_metadata.name into user object or we can rely on what's there
+  const activeTech = user?.user_metadata?.name || user?.email
+
   const titleByPath = {
     '/': 'KPIs',
     '/plan-semanal': 'Plan Semanal',
@@ -42,25 +38,14 @@ export default function App(){
   }
   const title = titleByPath[location.pathname] ?? 'MTTO'
 
-  useEffect(() => {
-    localStorage.setItem('mockRole', role)
-  }, [role])
-
-  useEffect(() => {
-    localStorage.setItem('mockTech', activeTech)
-  }, [activeTech])
-
   return (
     <>
       <div className="topbar">
         <TopBar
           title={title}
           role={role}
-          roles={ROLES}
-          onRoleChange={setRole}
           tech={activeTech}
-          techs={TECHS}
-          onTechChange={setActiveTech}
+          onLogout={signOut}
         />
       </div>
 
@@ -77,5 +62,13 @@ export default function App(){
 
       <BottomNav />
     </>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
