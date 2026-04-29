@@ -190,7 +190,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
         {/* SECCIÓN A */}
         <Text style={styles.sectionTitle}>SECCIÓN A - Inicio de servicio</Text>
 
-        {/* Fila 1: Cliente | Referencia | Fecha */}
+        {/* Fila 1: Cliente | Referencia | PDV | Fecha */}
         <View style={[styles.row, styles.firstRow]}>
           <View style={[styles.cell, { flex: 2 }]}>
             <Text style={styles.cellLabel}>Cliente:</Text>
@@ -199,6 +199,10 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           <View style={[styles.cell, { flex: 1 }]}>
             <Text style={styles.cellLabel}>Referencia:</Text>
             <Text style={styles.cellValue}>{data.referencia || workOrderCode || ''}</Text>
+          </View>
+          <View style={[styles.cell, { flex: 1 }]}>
+            <Text style={styles.cellLabel}>PDV:</Text>
+            <Text style={styles.cellValue}>{data.pdv || ''}</Text>
           </View>
           <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
             <Text style={styles.cellLabel}>Fecha:</Text>
