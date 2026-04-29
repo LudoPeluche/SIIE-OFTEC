@@ -2,7 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 import { PLANIFICACION_ITEMS, EPPS_ITEMS } from '../../constants'
 
 const G = '#22c55e'
-const LOGO_URL = (typeof window !== 'undefined' ? window.location.origin : '') + '/siiewcim.png'
+const LOGO_URL = (typeof window !== 'undefined' ? window.location.origin : '') + '/Logo%20pdm.png'
 
 const styles = StyleSheet.create({
   page: {
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     marginBottom: 5
   },
   headerLogo: {
-    width: 110,
+    width: 150,
     padding: 6,
     borderRightWidth: 1,
     borderRightColor: G,
@@ -171,7 +171,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLogo}>
-            <Image src={LOGO_URL} style={{ width: 95, height: 36, objectFit: 'contain' }} />
+            <Image src={LOGO_URL} style={{ width: 135, height: 50, objectFit: 'contain' }} />
           </View>
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>REGISTRO</Text>
