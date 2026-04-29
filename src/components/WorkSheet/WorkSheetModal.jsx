@@ -22,7 +22,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     cliente: '',
     fecha_servicio: new Date().toISOString().split('T')[0],
     area_ejecucion: '',
-    descripcion_servicio: '',
+    equipos_intervenidos: '',
 
     // CHECK LIST - Planificación del Servicio (cada item tiene: si, no, noAplica)
     planificacion: {},
@@ -65,7 +65,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     cliente: '',
     fecha_servicio: new Date().toISOString().split('T')[0],
     area_ejecucion: '',
-    descripcion_servicio: '',
+    equipos_intervenidos: '',
     planificacion: {},
     tareas_realizadas: [],
     permisos_alto_riesgo: {},
@@ -100,8 +100,8 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
           cliente: workOrder.cliente || '',
           acompanante_1: workOrder.asignados?.[1] || '',
           acompanante_2: workOrder.asignados?.[2] || '',
-          descripcion_servicio: workOrder.descripcion || '',
-          area_ejecucion: workOrder.area || ''
+          area_ejecucion: workOrder.area || '',
+          equipos_intervenidos: ''
         })
       }
     }
@@ -421,13 +421,23 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
               </div>
 
               <div className="field">
-                <label>Área de ejecución del Servicio / Descripción del servicio y equipos intervenidos</label>
+                <label>Área de ejecución del Servicio</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={formData.area_ejecucion}
+                  onChange={(e) => handleInputChange('area_ejecucion', e.target.value)}
+                  placeholder="Ej: Sala de control, Planta de producción..."
+                />
+              </div>
+              <div className="field">
+                <label>Equipos intervenidos</label>
                 <textarea
                   className="input"
                   rows="3"
-                  value={formData.descripcion_servicio}
-                  onChange={(e) => handleInputChange('descripcion_servicio', e.target.value)}
-                  placeholder="Detalle el área, servicio realizado y equipos involucrados..."
+                  value={formData.equipos_intervenidos}
+                  onChange={(e) => handleInputChange('equipos_intervenidos', e.target.value)}
+                  placeholder="Ej: Transformador T-01, Motor M-02, Panel PLC-03..."
                 />
               </div>
             </div>

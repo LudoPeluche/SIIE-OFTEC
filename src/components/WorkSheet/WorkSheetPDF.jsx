@@ -1,285 +1,185 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import {
   PLANIFICACION_ITEMS,
-  EJECUCION_ITEMS,
-  PELIGROS_ITEMS,
   PERMISOS_ALTO_RIESGO,
   EQUIPO_EMERGENCIA,
   EPPS_ITEMS
 } from '../../constants'
 
-// Estilos para el PDF - REG-SIE-02
+const G = '#22c55e'
+
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 14,
     fontSize: 8,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff'
   },
-  // Header
   header: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#22c55e',
-    marginBottom: 10
+    borderColor: G,
+    marginBottom: 5
   },
   headerLogo: {
-    width: 80,
-    padding: 8,
+    width: 68,
+    padding: 6,
     borderRightWidth: 1,
-    borderRightColor: '#22c55e',
+    borderRightColor: G,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  headerLogoText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#22c55e'
-  },
+  headerLogoText: { fontSize: 8, fontWeight: 'bold', color: G },
   headerTitle: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 8
+    padding: 6
   },
-  headerTitleText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#22c55e'
-  },
-  headerSubtitle: {
-    fontSize: 10,
-    color: '#22c55e',
-    marginTop: 2
-  },
+  headerTitleText: { fontSize: 13, fontWeight: 'bold', color: G },
+  headerSubtitle: { fontSize: 9, color: G, marginTop: 1 },
   headerCode: {
-    width: 80,
+    width: 68,
     borderLeftWidth: 1,
-    borderLeftColor: '#22c55e',
-    padding: 5,
+    borderLeftColor: G,
+    padding: 4,
     justifyContent: 'center'
   },
-  headerCodeLabel: {
-    fontSize: 7,
-    color: '#666'
-  },
-  headerCodeValue: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#22c55e'
-  },
+  headerCodeLabel: { fontSize: 6, color: '#666' },
+  headerCodeValue: { fontSize: 8, fontWeight: 'bold', color: G },
 
-  // Section title
   sectionTitle: {
-    backgroundColor: '#22c55e',
+    backgroundColor: G,
     color: '#ffffff',
-    padding: 4,
-    fontSize: 9,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
+    fontSize: 7,
     fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 4
+    marginTop: 5,
+    marginBottom: 0
   },
 
-  // Grid layouts
   row: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#22c55e',
+    borderColor: G,
     borderTopWidth: 0
   },
-  firstRow: {
-    borderTopWidth: 1
-  },
+  firstRow: { borderTopWidth: 1 },
   cell: {
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
-    borderRightColor: '#22c55e',
-    fontSize: 8
+    borderRightColor: G
   },
-  cellLast: {
-    borderRightWidth: 0
-  },
-  cellLabel: {
-    fontSize: 7,
-    color: '#666',
-    marginBottom: 1
-  },
-  cellValue: {
-    fontSize: 8,
-    color: '#000'
-  },
+  cellLast: { borderRightWidth: 0 },
+  cellLabel: { fontSize: 6, color: '#666', marginBottom: 1 },
+  cellValue: { fontSize: 7, color: '#000' },
 
-  // Checkbox styles
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 2
-  },
   checkbox: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderWidth: 1,
-    borderColor: '#22c55e',
-    marginRight: 4,
+    borderColor: G,
+    marginRight: 3,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  checkboxChecked: {
-    backgroundColor: '#22c55e'
-  },
-  checkboxX: {
-    fontSize: 6,
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-  checkboxLabel: {
-    fontSize: 7,
-    flex: 1
-  },
+  checkboxChecked: { backgroundColor: G },
+  checkboxX: { fontSize: 5, color: '#fff', fontWeight: 'bold' },
+  checkboxLabel: { fontSize: 6, flex: 1 },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 1 },
 
-  // Radio options (Si/No/NoAplica)
-  radioGroup: {
-    flexDirection: 'row',
-    gap: 8
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 10
-  },
-  radioLabel: {
-    fontSize: 6,
-    marginLeft: 2
-  },
+  radioGroup: { flexDirection: 'row', marginTop: 2 },
+  radioOption: { flexDirection: 'row', alignItems: 'center', marginRight: 5 },
+  radioLabel: { fontSize: 6, marginLeft: 2 },
 
-  // Table
-  table: {
-    borderWidth: 1,
-    borderColor: '#22c55e'
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#22c55e'
-  },
+  table: { borderWidth: 1, borderColor: G },
+  tableHeader: { flexDirection: 'row', backgroundColor: G },
   tableHeaderCell: {
     color: '#fff',
     fontSize: 7,
     fontWeight: 'bold',
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
     borderRightColor: '#fff'
   },
   tableRow: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#22c55e'
+    borderTopColor: G,
+    minHeight: 15
   },
   tableCell: {
     fontSize: 7,
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
-    borderRightColor: '#22c55e'
+    borderRightColor: G
   },
 
-  // Three column section
-  threeColumnSection: {
+  threeColSection: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#22c55e',
-    borderTopWidth: 0
+    borderColor: G,
+    borderTopWidth: 1
   },
-  threeColumnItem: {
+  threeColItem: {
     flex: 1,
-    padding: 6,
+    padding: 4,
     borderRightWidth: 1,
-    borderRightColor: '#22c55e'
+    borderRightColor: G
   },
-  threeColumnTitle: {
-    fontSize: 7,
+  threeColTitle: {
+    fontSize: 6,
     fontWeight: 'bold',
-    color: '#22c55e',
-    marginBottom: 4,
+    color: G,
+    marginBottom: 3,
     textTransform: 'uppercase'
   },
 
-  // Signatures
+  observacionesBox: {
+    borderWidth: 1,
+    borderColor: G,
+    borderTopWidth: 0,
+    padding: 4,
+    minHeight: 24
+  },
+
   signatureSection: {
     flexDirection: 'row',
-    marginTop: 10,
+    marginTop: 4,
     borderWidth: 1,
-    borderColor: '#22c55e'
+    borderColor: G
   },
   signatureBox: {
     flex: 1,
-    padding: 8,
+    padding: 5,
     borderRightWidth: 1,
-    borderRightColor: '#22c55e',
+    borderRightColor: G,
     alignItems: 'center'
   },
-  signatureBoxLast: {
-    borderRightWidth: 0
-  },
+  signatureBoxLast: { borderRightWidth: 0 },
   signatureImage: {
-    width: 120,
-    height: 50,
-    marginBottom: 4,
+    width: 110,
+    height: 42,
+    marginBottom: 2,
     borderBottomWidth: 1,
     borderBottomColor: '#000'
   },
-  signatureLabel: {
-    fontSize: 7,
-    color: '#666',
-    marginTop: 4
-  },
-  signatureName: {
-    fontSize: 8,
-    marginTop: 2
-  },
+  signatureLabel: { fontSize: 6, color: '#666', marginTop: 2 },
+  signatureName: { fontSize: 7, marginTop: 1 },
 
-  // Footer disclaimer
   disclaimer: {
-    marginTop: 6,
-    padding: 6,
+    padding: 4,
     backgroundColor: '#f0fdf4',
     borderWidth: 1,
-    borderColor: '#22c55e',
-    fontSize: 7,
+    borderColor: G,
+    borderTopWidth: 0,
+    fontSize: 6,
     color: '#166534',
     textAlign: 'center'
-  },
-
-  // Peligros grid (checkboxes in grid)
-  peligrosGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#22c55e',
-    borderTopWidth: 0
-  },
-  peligrosItem: {
-    width: '25%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 2,
-    paddingRight: 4
-  },
-
-  // Observaciones
-  observacionesBox: {
-    borderWidth: 1,
-    borderColor: '#22c55e',
-    borderTopWidth: 0,
-    padding: 6,
-    minHeight: 40
-  },
-  observacionesText: {
-    fontSize: 8,
-    color: '#333'
   }
 })
 
-// Helper: Render checkbox
 const Checkbox = ({ checked, label }) => (
   <View style={styles.checkboxRow}>
     <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
@@ -289,39 +189,29 @@ const Checkbox = ({ checked, label }) => (
   </View>
 )
 
-// Helper: Render radio options
 const RadioOptions = ({ value }) => (
   <View style={styles.radioGroup}>
-    <View style={styles.radioOption}>
-      <View style={[styles.checkbox, value === 'si' && styles.checkboxChecked]}>
-        {value === 'si' && <Text style={styles.checkboxX}>X</Text>}
+    {[['si', 'Sí'], ['no', 'No'], ['noAplica', 'N/A']].map(([v, label]) => (
+      <View key={v} style={styles.radioOption}>
+        <View style={[styles.checkbox, value === v && styles.checkboxChecked]}>
+          {value === v && <Text style={styles.checkboxX}>X</Text>}
+        </View>
+        <Text style={styles.radioLabel}>{label}</Text>
       </View>
-      <Text style={styles.radioLabel}>Sí</Text>
-    </View>
-    <View style={styles.radioOption}>
-      <View style={[styles.checkbox, value === 'no' && styles.checkboxChecked]}>
-        {value === 'no' && <Text style={styles.checkboxX}>X</Text>}
-      </View>
-      <Text style={styles.radioLabel}>No</Text>
-    </View>
-    <View style={styles.radioOption}>
-      <View style={[styles.checkbox, value === 'noAplica' && styles.checkboxChecked]}>
-        {value === 'noAplica' && <Text style={styles.checkboxX}>X</Text>}
-      </View>
-      <Text style={styles.radioLabel}>N/A</Text>
-    </View>
+    ))}
   </View>
 )
 
 export default function WorkSheetPDF({ data, workOrderCode }) {
   const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A'
+    if (!dateStr) return ''
     return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLogo}>
@@ -341,10 +231,10 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           </View>
         </View>
 
-        {/* SECCIÓN A - INICIO DE SERVICIO */}
+        {/* SECCIÓN A */}
         <Text style={styles.sectionTitle}>SECCIÓN A - Inicio de servicio</Text>
 
-        {/* Fila 1: Cliente, Referencia */}
+        {/* Fila 1: Cliente | Referencia | Fecha */}
         <View style={[styles.row, styles.firstRow]}>
           <View style={[styles.cell, { flex: 2 }]}>
             <Text style={styles.cellLabel}>Cliente:</Text>
@@ -354,34 +244,21 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             <Text style={styles.cellLabel}>Referencia:</Text>
             <Text style={styles.cellValue}>{data.referencia || workOrderCode || ''}</Text>
           </View>
+          <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
+            <Text style={styles.cellLabel}>Fecha:</Text>
+            <Text style={styles.cellValue}>{formatDate(data.fecha_servicio)}</Text>
+          </View>
         </View>
 
-        {/* Fila 2: Responsable, Destino, Permiso viaje */}
+        {/* Fila 2: Responsable | Destino */}
         <View style={styles.row}>
           <View style={[styles.cell, { flex: 1 }]}>
             <Text style={styles.cellLabel}>Responsable del servicio:</Text>
             <Text style={styles.cellValue}>{data.responsable || ''}</Text>
           </View>
-          <View style={[styles.cell, { flex: 1 }]}>
+          <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
             <Text style={styles.cellLabel}>Destino:</Text>
             <Text style={styles.cellValue}>{data.destino || ''}</Text>
-          </View>
-          <View style={[styles.cell, styles.cellLast, { width: 120 }]}>
-            <Text style={styles.cellLabel}>¿Corresponde permiso de viaje?</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
-              <View style={styles.radioOption}>
-                <View style={[styles.checkbox, data.permiso_viaje === true && styles.checkboxChecked]}>
-                  {data.permiso_viaje === true && <Text style={styles.checkboxX}>X</Text>}
-                </View>
-                <Text style={styles.radioLabel}>Sí</Text>
-              </View>
-              <View style={styles.radioOption}>
-                <View style={[styles.checkbox, data.permiso_viaje === false && styles.checkboxChecked]}>
-                  {data.permiso_viaje === false && <Text style={styles.checkboxX}>X</Text>}
-                </View>
-                <Text style={styles.radioLabel}>No</Text>
-              </View>
-            </View>
           </View>
         </View>
 
@@ -391,109 +268,84 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             <Text style={styles.cellLabel}>Acompañante 1:</Text>
             <Text style={styles.cellValue}>{data.acompanante_1 || ''}</Text>
           </View>
-          <View style={[styles.cell, { flex: 1 }]}>
+          <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
             <Text style={styles.cellLabel}>Acompañante 2:</Text>
             <Text style={styles.cellValue}>{data.acompanante_2 || ''}</Text>
           </View>
-          <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
-            <Text style={styles.cellLabel}>Fecha:</Text>
-            <Text style={styles.cellValue}>{formatDate(data.fecha_servicio)}</Text>
-          </View>
         </View>
 
-        {/* Fila 4: Área y descripción */}
+        {/* Fila 4: Área de ejecución */}
         <View style={styles.row}>
           <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
-            <Text style={styles.cellLabel}>Área de ejecución del Servicio / Descripción del servicio y equipos intervenidos:</Text>
-            <Text style={styles.cellValue}>{data.descripcion_servicio || ''}</Text>
+            <Text style={styles.cellLabel}>Área de ejecución del Servicio:</Text>
+            <Text style={styles.cellValue}>{data.area_ejecucion || ''}</Text>
           </View>
         </View>
 
-        {/* CHECK LIST - PLANIFICACIÓN DEL SERVICIO */}
+        {/* Fila 5: Equipos intervenidos (altura variable) */}
+        <View style={styles.row}>
+          <View style={[styles.cell, styles.cellLast, { flex: 1, minHeight: 26 }]}>
+            <Text style={styles.cellLabel}>Equipos intervenidos:</Text>
+            <Text style={styles.cellValue}>{data.equipos_intervenidos || data.descripcion_servicio || ''}</Text>
+          </View>
+        </View>
+
+        {/* CHECK LIST - PLANIFICACIÓN */}
         <Text style={styles.sectionTitle}>CHECK LIST - PLANIFICACIÓN DEL SERVICIO</Text>
         <View style={[styles.row, styles.firstRow]}>
           {PLANIFICACION_ITEMS.map((item, idx) => (
-            <View key={item.key} style={[styles.cell, idx === PLANIFICACION_ITEMS.length - 1 && styles.cellLast, { flex: 1 }]}>
+            <View
+              key={item.key}
+              style={[styles.cell, idx === PLANIFICACION_ITEMS.length - 1 && styles.cellLast, { flex: 1 }]}
+            >
               <Text style={styles.cellLabel}>{item.label}</Text>
               <RadioOptions value={data.planificacion?.[item.key]} />
             </View>
           ))}
         </View>
 
-        {/* EJECUCIÓN DEL SERVICIO */}
-        <Text style={styles.sectionTitle}>EJECUCIÓN DEL SERVICIO</Text>
-        <View style={[styles.row, styles.firstRow]}>
-          {EJECUCION_ITEMS.map((item, idx) => (
-            <View key={item.key} style={[styles.cell, idx === EJECUCION_ITEMS.length - 1 && styles.cellLast, { flex: 1 }]}>
-              <Text style={styles.cellLabel}>{item.label}</Text>
-              <RadioOptions value={data.ejecucion?.[item.key]} />
-            </View>
-          ))}
-        </View>
-        <View style={styles.row}>
-          <View style={[styles.cell, styles.cellLast, { flex: 1 }]}>
-            <Text style={styles.cellLabel}>¿Cuántas personas están en riesgo de sufrir un accidente por sus actividades?</Text>
-            <Text style={styles.cellValue}>{data.personas_riesgo || '0'} personas | R= {data.riesgo_rating || '0'}</Text>
-          </View>
-        </View>
-
         {/* TAREAS REALIZADAS */}
         <Text style={styles.sectionTitle}>TAREAS REALIZADAS</Text>
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, { width: 30 }]}>N°</Text>
+            <Text style={[styles.tableHeaderCell, { width: 20 }]}>N°</Text>
             <Text style={[styles.tableHeaderCell, { flex: 1 }]}>DETALLE DE TAREAS/ACTIVIDADES</Text>
-            <Text style={[styles.tableHeaderCell, { width: 100, borderRightWidth: 0 }]}>RESPONSABLE</Text>
+            <Text style={[styles.tableHeaderCell, { width: 75, borderRightWidth: 0 }]}>RESPONSABLE</Text>
           </View>
           {data.tareas_realizadas && data.tareas_realizadas.length > 0 ? (
             data.tareas_realizadas.map((task, idx) => (
               <View key={idx} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: 30, textAlign: 'center' }]}>{task.numero}</Text>
+                <Text style={[styles.tableCell, { width: 20, textAlign: 'center' }]}>{task.numero}</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>{task.detalle || ''}</Text>
-                <Text style={[styles.tableCell, { width: 100, borderRightWidth: 0 }]}>{task.responsable || ''}</Text>
+                <Text style={[styles.tableCell, { width: 75, borderRightWidth: 0 }]}>{task.responsable || ''}</Text>
               </View>
             ))
           ) : (
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center', borderRightWidth: 0 }]}>Sin tareas registradas</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center', borderRightWidth: 0 }]}>
+                Sin tareas registradas
+              </Text>
             </View>
           )}
         </View>
 
-        {/* PELIGROS */}
-        <Text style={styles.sectionTitle}>PELIGROS</Text>
-        <View style={styles.peligrosGrid}>
-          {PELIGROS_ITEMS.map((item) => (
-            <View key={item.key} style={styles.peligrosItem}>
-              <View style={[styles.checkbox, data.peligros?.[item.key] && styles.checkboxChecked]}>
-                {data.peligros?.[item.key] && <Text style={styles.checkboxX}>X</Text>}
-              </View>
-              <Text style={[styles.checkboxLabel, { fontSize: 6 }]}>{item.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* PERMISOS, EQUIPO DE EMERGENCIA, EPPs */}
-        <View style={styles.threeColumnSection}>
-          {/* Permisos Alto Riesgo */}
-          <View style={styles.threeColumnItem}>
-            <Text style={styles.threeColumnTitle}>Permisos para Actividades de Alto Riesgo</Text>
+        {/* PERMISOS / EQUIPO DE EMERGENCIA / EPPs */}
+        <Text style={styles.sectionTitle}>PERMISOS / EQUIPO DE EMERGENCIA / EPPs</Text>
+        <View style={styles.threeColSection}>
+          <View style={styles.threeColItem}>
+            <Text style={styles.threeColTitle}>Permisos para Actividades de Alto Riesgo</Text>
             {PERMISOS_ALTO_RIESGO.map((item) => (
               <Checkbox key={item.key} checked={data.permisos_alto_riesgo?.[item.key]} label={item.label} />
             ))}
           </View>
-
-          {/* Equipo de Emergencia */}
-          <View style={styles.threeColumnItem}>
-            <Text style={styles.threeColumnTitle}>Equipo de Emergencia</Text>
+          <View style={styles.threeColItem}>
+            <Text style={styles.threeColTitle}>Equipo de Emergencia</Text>
             {EQUIPO_EMERGENCIA.map((item) => (
               <Checkbox key={item.key} checked={data.equipo_emergencia?.[item.key]} label={item.label} />
             ))}
           </View>
-
-          {/* EPPs */}
-          <View style={[styles.threeColumnItem, { borderRightWidth: 0 }]}>
-            <Text style={styles.threeColumnTitle}>EPPs</Text>
+          <View style={[styles.threeColItem, { borderRightWidth: 0 }]}>
+            <Text style={styles.threeColTitle}>EPPs</Text>
             {EPPS_ITEMS.map((item) => (
               <Checkbox key={item.key} checked={data.epps?.[item.key]} label={item.label} />
             ))}
@@ -501,38 +353,21 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
         </View>
 
         {/* OBSERVACIONES */}
+        <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
         <View style={styles.observacionesBox}>
-          <Text style={styles.cellLabel}>Observaciones:</Text>
-          <Text style={styles.observacionesText}>{data.observaciones || 'Sin observaciones'}</Text>
-          <View style={{ flexDirection: 'row', marginTop: 4 }}>
-            <Text style={styles.cellLabel}>Ficha de trabajo: </Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <View style={styles.radioOption}>
-                <View style={[styles.checkbox, data.ficha_trabajo_ok === true && styles.checkboxChecked]}>
-                  {data.ficha_trabajo_ok === true && <Text style={styles.checkboxX}>X</Text>}
-                </View>
-                <Text style={styles.radioLabel}>Sí</Text>
-              </View>
-              <View style={styles.radioOption}>
-                <View style={[styles.checkbox, data.ficha_trabajo_ok === false && styles.checkboxChecked]}>
-                  {data.ficha_trabajo_ok === false && <Text style={styles.checkboxX}>X</Text>}
-                </View>
-                <Text style={styles.radioLabel}>No</Text>
-              </View>
-            </View>
-          </View>
+          <Text style={{ fontSize: 7, color: '#333' }}>{data.observaciones || ''}</Text>
         </View>
 
-        {/* 2. RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD */}
-        <Text style={styles.sectionTitle}>2. RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD</Text>
-
+        {/* RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD */}
+        <Text style={styles.sectionTitle}>RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD</Text>
         <View style={styles.disclaimer}>
-          <Text>Dejamos constancia de nuestra aceptación del servicio ofrecido ejecutado sin que exista reclamo presente ni futuro al respecto.</Text>
+          <Text>
+            Dejamos constancia de nuestra aceptación del servicio ofrecido ejecutado sin que exista reclamo presente ni futuro al respecto.
+          </Text>
         </View>
 
         {/* FIRMAS */}
         <View style={styles.signatureSection}>
-          {/* Firma Técnico */}
           <View style={styles.signatureBox}>
             {data.firma_tecnico ? (
               <Image src={data.firma_tecnico} style={styles.signatureImage} />
@@ -543,8 +378,6 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             <Text style={styles.signatureName}>{data.nombre_tecnico || ''}</Text>
             <Text style={styles.signatureLabel}>Nombre y Fecha</Text>
           </View>
-
-          {/* Firma Cliente */}
           <View style={[styles.signatureBox, styles.signatureBoxLast]}>
             {data.firma_cliente ? (
               <Image src={data.firma_cliente} style={styles.signatureImage} />
@@ -556,6 +389,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             <Text style={styles.signatureLabel}>Nombre y Fecha</Text>
           </View>
         </View>
+
       </Page>
     </Document>
   )
