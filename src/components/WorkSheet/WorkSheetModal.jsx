@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import {
   PEOPLE,
-  PLANIFICACION_ITEMS
+  PLANIFICACION_ITEMS,
+  EPPS_ITEMS
 } from '../../constants'
 import SignatureCanvasComponent from './SignatureCanvas'
 import TaskTable from './TaskTable'
@@ -52,6 +53,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     equipos_intervenidos: '',
     planificacion: {},
     tareas_realizadas: [],
+    epps: {},
     firma_tecnico: '',
     firma_cliente: '',
     nombre_tecnico: '',
@@ -95,6 +97,14 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
         return newErrors
       })
     }
+  }
+
+  // Para checkboxes simples
+  const handleCheckboxChange = (section, key) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: { ...prev[section], [key]: !prev[section]?.[key] }
+    }))
   }
 
   // Para items con opciones Si/No/NoAplica
@@ -410,6 +420,23 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
                   {errors.tareas_realizadas}
                 </span>
               )}
+            </div>
+          </section>
+
+          {/* EPPs */}
+          <section style={{ marginBottom: 24 }}>
+            <h3 style={sectionTitleStyle}>EPPs</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: 16 }}>
+              {EPPS_ITEMS.map((item) => (
+                <label key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!formData.epps?.[item.key]}
+                    onChange={() => handleCheckboxChange('epps', item.key)}
+                  />
+                  {item.label}
+                </label>
+              ))}
             </div>
           </section>
 

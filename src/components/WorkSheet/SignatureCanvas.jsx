@@ -6,8 +6,20 @@ export default function SignatureCanvasComponent({ label, value, onChange, requi
   const [isEmpty, setIsEmpty] = useState(true)
   const fromInternal = useRef(false)
 
+  // Sincronizar la resolución interna del canvas con su tamaño CSS real.
+  // Sin esto, el canvas tiene 500px internos pero se muestra a otro ancho,
+  // lo que desplaza las coordenadas del trazo.
   useEffect(() => {
-    // Solo cargar desde props cuando el cambio viene de afuera (no de nuestro propio onChange)
+    if (sigCanvas.current) {
+      const canvas = sigCanvas.current.getCanvas()
+      const displayWidth = canvas.offsetWidth
+      if (displayWidth && displayWidth !== canvas.width) {
+        canvas.width = displayWidth
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (fromInternal.current) {
       fromInternal.current = false
       return
@@ -58,7 +70,6 @@ export default function SignatureCanvasComponent({ label, value, onChange, requi
           ref={sigCanvas}
           onEnd={handleEnd}
           canvasProps={{
-            width: 500,
             height: 200,
             className: 'signature-canvas',
             style: {
@@ -66,7 +77,8 @@ export default function SignatureCanvasComponent({ label, value, onChange, requi
               height: '200px',
               borderRadius: 8,
               background: 'rgba(0,0,0,0.2)',
-              touchAction: 'none'
+              touchAction: 'none',
+              display: 'block'
             }
           }}
         />

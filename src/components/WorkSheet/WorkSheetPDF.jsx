@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
-import { PLANIFICACION_ITEMS } from '../../constants'
+import { PLANIFICACION_ITEMS, EPPS_ITEMS } from '../../constants'
 
 const G = '#22c55e'
 
@@ -283,6 +283,25 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
               </Text>
             </View>
           )}
+        </View>
+
+        {/* EPPs */}
+        <Text style={styles.sectionTitle}>EPPs</Text>
+        <View style={{
+          borderWidth: 1,
+          borderColor: G,
+          padding: 6,
+          flexDirection: 'row',
+          flexWrap: 'wrap'
+        }}>
+          {EPPS_ITEMS.map((item) => (
+            <View key={item.key} style={{ width: '33%', flexDirection: 'row', alignItems: 'center', paddingVertical: 2, paddingRight: 6 }}>
+              <View style={[styles.radioBox, data.epps?.[item.key] && styles.radioBoxChecked]}>
+                {data.epps?.[item.key] && <Text style={styles.radioX}>X</Text>}
+              </View>
+              <Text style={{ fontSize: 6, marginLeft: 3 }}>{item.label}</Text>
+            </View>
+          ))}
         </View>
 
         {/* RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD */}
