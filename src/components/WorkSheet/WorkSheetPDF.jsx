@@ -339,7 +339,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             )}
             <Text style={styles.signatureLabel}>Firma</Text>
             <Text style={styles.signatureName}>{data.nombre_tecnico || ''}</Text>
-            <Text style={styles.signatureLabel}>Nombre y Fecha</Text>
+            <Text style={styles.signatureLabel}>{formatDate(data.fecha_firma)}</Text>
           </View>
           <View style={[styles.signatureBox, styles.signatureBoxLast]}>
             {data.firma_cliente ? (
@@ -349,7 +349,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
             )}
             <Text style={styles.signatureLabel}>Firma</Text>
             <Text style={styles.signatureName}>{data.nombre_cliente || ''}</Text>
-            <Text style={styles.signatureLabel}>Nombre y Fecha</Text>
+            <Text style={styles.signatureLabel}>{formatDate(data.fecha_firma)}</Text>
           </View>
         </View>
 

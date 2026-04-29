@@ -24,6 +24,10 @@ export default function WorkOrderDetails({
     const toolsComplete = viewing.checklist?.toolsComplete ?? viewing.toolsComplete
     const toolNote = viewing.checklist?.toolNote ?? viewing.toolNote
     const hasChecklist = typeof toolReady === 'boolean' || typeof toolsComplete === 'boolean' || (toolNote || '').trim()
+    const isClosed = ['CLOSED', 'REWORK'].includes(viewing.estado)
+    const horasPorTecnico = Array.isArray(viewing.horasPorTecnico) ? viewing.horasPorTecnico : []
+    const totalRegulares = horasPorTecnico.reduce((s, h) => s + Number(h.horas || 0), 0)
+    const totalExtras = horasPorTecnico.reduce((s, h) => s + Number(h.horasExtra || 0), 0)
 
     return (
         <>
@@ -105,6 +109,69 @@ export default function WorkOrderDetails({
                         </>
                     )}
                 </div>
+                {isClosed && (
+                    <div className="col-12 field">
+                        <label style={{ fontWeight: 700, fontSize: 14, color: '#10b981', borderBottom: '1px solid rgba(16,185,129,0.2)', paddingBottom: 6, marginBottom: 10, display: 'block' }}>
+                            Datos de cierre
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                            <div>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Fecha inicio real</div>
+                                <div className="badge">{viewing.realFechaInicio || <span style={{ opacity: 0.4 }}>No registrada</span>}</div>
+                            </div>
+                            <div>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Fecha fin real</div>
+                                <div className="badge">{viewing.realFechaFin || <span style={{ opacity: 0.4 }}>No registrada</span>}</div>
+                            </div>
+                        </div>
+
+                        {horasPorTecnico.length > 0 ? (
+                            <div style={{ marginBottom: 12 }}>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 6 }}>Horas por técnico</div>
+                                <div style={{ display: 'grid', gap: 4 }}>
+                                    {horasPorTecnico.map(h => (
+                                        <div key={h.tech} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, fontSize: 13 }}>
+                                            <span style={{ fontWeight: 600 }}>{h.tech}</span>
+                                            <span style={{ color: '#10b981' }}>{Number(h.horas || 0).toFixed(1)}h reg.</span>
+                                            <span style={{ color: '#f59e0b' }}>{Number(h.horasExtra || 0).toFixed(1)}h extra</span>
+                                        </div>
+                                    ))}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, padding: '6px 10px', background: 'rgba(16,185,129,0.1)', borderRadius: 6, fontSize: 13, fontWeight: 700 }}>
+                                        <span>TOTAL</span>
+                                        <span style={{ color: '#10b981' }}>{totalRegulares.toFixed(1)}h</span>
+                                        <span style={{ color: '#f59e0b' }}>{totalExtras.toFixed(1)}h extra</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            Number(viewing.horasReales || 0) > 0 && (
+                                <div style={{ marginBottom: 12 }}>
+                                    <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Horas reales</div>
+                                    <div className="badge">{Number(viewing.horasReales).toFixed(1)}h</div>
+                                </div>
+                            )
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                            <div>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Gastos del servicio</div>
+                                <div className="badge">{Number(viewing.gastos || 0) > 0 ? `$${Number(viewing.gastos).toFixed(2)}` : <span style={{ opacity: 0.4 }}>Sin gastos</span>}</div>
+                            </div>
+                            <div>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Presupuesto plan</div>
+                                <div className="badge">{Number(viewing.presupuesto || 0) > 0 ? `$${Number(viewing.presupuesto).toFixed(2)}` : <span style={{ opacity: 0.4 }}>No definido</span>}</div>
+                            </div>
+                        </div>
+
+                        {(viewing.observacionesCierre || '').trim() && (
+                            <div>
+                                <div className="muted" style={{ fontSize: 11, marginBottom: 3 }}>Observaciones de cierre</div>
+                                <div className="badge" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{viewing.observacionesCierre}</div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {isAdmin && (
                     <div className="col-12 field">
                         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>

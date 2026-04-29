@@ -78,14 +78,14 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
         setFormData({
           ...defaultFormData,
           ...workOrder.work_sheet_data,
-          // Asegurar que la referencia esté actualizada
-          referencia: workOrder.code || workOrder.work_sheet_data.referencia || ''
+          referencia: workOrder.referencia || workOrder.work_sheet_data.referencia || '',
+          pdv: workOrder.pdv || workOrder.work_sheet_data.pdv || ''
         })
       } else {
         // Pre-llenar con datos básicos de la OT
         setFormData({
           ...defaultFormData,
-          referencia: workOrder.code || '',
+          referencia: workOrder.referencia || '',
           responsable: workOrder.responsable || '',
           cliente: workOrder.cliente || '',
           pdv: workOrder.pdv || '',
@@ -300,7 +300,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
             <h3 style={sectionTitleStyle}>SECCIÓN A - Inicio de servicio</h3>
 
             <div style={subSectionStyle}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div className="field">
                   <label>Cliente</label>
                   <input
@@ -313,13 +313,23 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
                   {errors.cliente && <span style={{ color: 'var(--bad)', fontSize: 11 }}>{errors.cliente}</span>}
                 </div>
                 <div className="field">
-                  <label>Referencia</label>
+                  <label>Contacto en planta</label>
                   <input
                     type="text"
                     className="input"
                     value={formData.referencia}
                     onChange={(e) => handleInputChange('referencia', e.target.value)}
-                    placeholder="OT-XXX"
+                    placeholder="Nombre de contacto"
+                  />
+                </div>
+                <div className="field">
+                  <label>PDV</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={formData.pdv}
+                    onChange={(e) => handleInputChange('pdv', e.target.value)}
+                    placeholder="Ej: PDV-01"
                   />
                 </div>
                 <div className="field">

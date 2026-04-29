@@ -158,6 +158,62 @@ function HorizontalBars({ data, valueKey='value', labelKey='label', suffix='' })
   )
 }
 
+function CalendarHeatmap({ data }) {
+  const { days, maxCount, year, month } = data
+  if (!days.length) return <div className="muted" style={{padding:'20px 0', textAlign:'center'}}>Selecciona un mes para ver el detalle diario</div>
+  const DOW = ['Lu','Ma','Mi','Ju','Vi','Sa','Do']
+  const firstDow = new Date(year, month - 1, 1).getDay()
+  const startOffset = firstDow === 0 ? 6 : firstDow - 1
+  const cells = []
+  for (let i = 0; i < startOffset; i++) cells.push(null)
+  days.forEach(d => cells.push(d))
+  const getColor = (count) => {
+    if (!count) return 'rgba(255,255,255,0.04)'
+    const t = count / maxCount
+    if (t < 0.34) return 'rgba(16,185,129,0.22)'
+    if (t < 0.67) return 'rgba(16,185,129,0.52)'
+    return 'rgba(16,185,129,0.88)'
+  }
+  return (
+    <div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3, marginBottom:4}}>
+        {DOW.map(d => <div key={d} style={{textAlign:'center', fontSize:10, color:'var(--muted)', fontWeight:700}}>{d}</div>)}
+      </div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3}}>
+        {cells.map((cell, i) => (
+          <div
+            key={i}
+            title={cell ? `Día ${cell.day}: ${cell.count} OT${cell.count !== 1 ? 's' : ''}` : ''}
+            style={{
+              background: cell ? getColor(cell.count) : 'transparent',
+              borderRadius:4,
+              padding:'5px 2px',
+              textAlign:'center',
+              minHeight:34,
+              display:'flex',
+              flexDirection:'column',
+              alignItems:'center',
+              justifyContent:'center'
+            }}
+          >
+            {cell && <>
+              <span style={{fontSize:11, fontWeight: cell.count ? 700 : 400, color: cell.count ? 'var(--text)' : 'var(--muted)'}}>{cell.day}</span>
+              {cell.count > 0 && <span style={{fontSize:9, color:'#10b981', fontWeight:700}}>{cell.count}</span>}
+            </>}
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex', gap:6, marginTop:8, alignItems:'center', fontSize:10, color:'var(--muted)'}}>
+        <span>Menos</span>
+        {[0, 0.22, 0.52, 0.88].map((a, i) => (
+          <div key={i} style={{width:11, height:11, borderRadius:2, background: a===0 ? 'rgba(255,255,255,0.04)' : `rgba(16,185,129,${a})`}} />
+        ))}
+        <span>Más</span>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard(){
   const [otData, setOtData] = useState([])
   const [loading, setLoading] = useState(false)
@@ -338,6 +394,48 @@ export default function Dashboard(){
 
   const avgTiempo = tiempoProm.length ? Math.round(tiempoProm.reduce((a,b)=>a + b.horas,0) / tiempoProm.length) : 0
   const avgOt = otPorMes.length ? Math.round(otPorMes.reduce((a,b)=>a+b.ot,0)/otPorMes.length) : 0
+
+  const otPorSemana = useMemo(() => {
+    if (globalMonth === 'ALL') return []
+    const weeks = [
+      { label: 'S1  1–7', ot: 0, horas: 0 },
+      { label: 'S2  8–14', ot: 0, horas: 0 },
+      { label: 'S3 15–21', ot: 0, horas: 0 },
+      { label: 'S4 22+', ot: 0, horas: 0 }
+    ]
+    otFiltered.forEach(it => {
+      if (it.estado === 'CANCELED') return
+      const dateKey = it.fechaInicio || it.fechaPlan || ''
+      const day = parseInt(String(dateKey).split('-')[2], 10)
+      if (!day) return
+      const idx = day <= 7 ? 0 : day <= 14 ? 1 : day <= 21 ? 2 : 3
+      weeks[idx].ot += 1
+      weeks[idx].horas += parseNum(it.horasReales) + parseNum(it.horasExtraReales)
+    })
+    return weeks
+  }, [otFiltered, globalMonth])
+
+  const otPorDia = useMemo(() => {
+    if (globalMonth === 'ALL') return { days: [], maxCount: 0, year: 0, month: 0 }
+    const [y, m] = globalMonth.split('-').map(Number)
+    const daysInMonth = new Date(y, m, 0).getDate()
+    const map = new Map()
+    otFiltered.forEach(it => {
+      if (it.estado === 'CANCELED') return
+      const dateKey = it.fechaInicio || it.fechaPlan || ''
+      const parts = String(dateKey).split('-')
+      if (parts.length < 3) return
+      const day = parseInt(parts[2], 10)
+      if (!day || day > daysInMonth) return
+      map.set(day, (map.get(day) || 0) + 1)
+    })
+    const days = []
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push({ day: d, count: map.get(d) || 0 })
+    }
+    const maxCount = Math.max(...days.map(d => d.count), 1)
+    return { days, maxCount, year: y, month: m }
+  }, [otFiltered, globalMonth])
 
   const todayKey = useMemo(() => {
     const now = new Date()
@@ -961,6 +1059,30 @@ export default function Dashboard(){
               </div>
             </div>
             <BarChart data={tiempoProm} valueKey="horas" labelKey="mes" colorClass="bar-green" suffix="h" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── SEMANAS + HEATMAP DÍAS ── */}
+      <div className="col-12">
+        <div className="bi-grid">
+          <div className="card card-hero">
+            <h3 style={{margin:'0 0 12px', fontSize:16, fontWeight:800}}>OTs por semana</h3>
+            {globalMonth === 'ALL' ? (
+              <div className="muted">Selecciona un mes para ver el desglose semanal</div>
+            ) : (
+              <>
+                <BarChart data={otPorSemana} valueKey="ot" labelKey="label" colorClass="bar-primary" />
+                <div style={{marginTop:12}}>
+                  <div className="muted" style={{fontSize:11, marginBottom:6}}>Horas por semana</div>
+                  <BarChart data={otPorSemana} valueKey="horas" labelKey="label" colorClass="bar-green" suffix="h" />
+                </div>
+              </>
+            )}
+          </div>
+          <div className="card card-hero">
+            <h3 style={{margin:'0 0 12px', fontSize:16, fontWeight:800}}>Actividad diaria</h3>
+            <CalendarHeatmap data={otPorDia} />
           </div>
         </div>
       </div>
