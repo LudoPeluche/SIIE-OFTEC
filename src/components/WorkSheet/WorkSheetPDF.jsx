@@ -2,6 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 import { PLANIFICACION_ITEMS, EPPS_ITEMS } from '../../constants'
 
 const G = '#22c55e'
+const LOGO_URL = (typeof window !== 'undefined' ? window.location.origin : '') + '/siiewcim.png'
 
 const styles = StyleSheet.create({
   page: {
@@ -17,14 +18,13 @@ const styles = StyleSheet.create({
     marginBottom: 5
   },
   headerLogo: {
-    width: 68,
+    width: 110,
     padding: 6,
     borderRightWidth: 1,
     borderRightColor: G,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  headerLogoText: { fontSize: 8, fontWeight: 'bold', color: G },
   headerTitle: {
     flex: 1,
     justifyContent: 'center',
@@ -171,7 +171,7 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLogo}>
-            <Text style={styles.headerLogoText}>SIENERGIA</Text>
+            <Image src={LOGO_URL} style={{ width: 95, height: 36, objectFit: 'contain' }} />
           </View>
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>REGISTRO</Text>
