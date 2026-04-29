@@ -260,6 +260,19 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           ))}
         </View>
 
+        {/* EPPs — antes de tareas */}
+        <Text style={styles.sectionTitle}>EPPs</Text>
+        <View style={{ borderWidth: 1, borderColor: G, padding: 6, flexDirection: 'row', flexWrap: 'wrap' }}>
+          {EPPS_ITEMS.map((item) => (
+            <View key={item.key} style={{ width: '33%', flexDirection: 'row', alignItems: 'center', paddingVertical: 2, paddingRight: 6 }}>
+              <View style={[styles.radioBox, data.epps?.[item.key] && styles.radioBoxChecked]}>
+                {data.epps?.[item.key] && <Text style={styles.radioX}>X</Text>}
+              </View>
+              <Text style={{ fontSize: 6, marginLeft: 3 }}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+
         {/* TAREAS REALIZADAS */}
         <Text style={styles.sectionTitle}>TAREAS REALIZADAS</Text>
         <View style={styles.table}>
@@ -285,35 +298,11 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           )}
         </View>
 
-        {/* EPPs */}
-        <Text style={styles.sectionTitle}>EPPs</Text>
-        <View style={{
-          borderWidth: 1,
-          borderColor: G,
-          padding: 6,
-          flexDirection: 'row',
-          flexWrap: 'wrap'
-        }}>
-          {EPPS_ITEMS.map((item) => (
-            <View key={item.key} style={{ width: '33%', flexDirection: 'row', alignItems: 'center', paddingVertical: 2, paddingRight: 6 }}>
-              <View style={[styles.radioBox, data.epps?.[item.key] && styles.radioBoxChecked]}>
-                {data.epps?.[item.key] && <Text style={styles.radioX}>X</Text>}
-              </View>
-              <Text style={{ fontSize: 6, marginLeft: 3 }}>{item.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* OBSERVACIONES */}
+        {/* OBSERVACIONES — flex:1 para llenar el espacio restante de la hoja */}
         <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
-        <View style={{
-          borderWidth: 1,
-          borderColor: G,
-          padding: 6,
-          minHeight: 30
-        }}>
-          <Text style={{ fontSize: 7, color: data.observaciones ? '#333' : '#999' }}>
-            {data.observaciones || 'No existe ninguna observación.'}
+        <View style={{ flex: 1, borderWidth: 1, borderColor: G, padding: 6 }}>
+          <Text style={{ fontSize: 7, color: (data.observaciones || '').trim() ? '#333' : '#999' }}>
+            {(data.observaciones || '').trim() || 'No existe ninguna observación.'}
           </Text>
         </View>
 
