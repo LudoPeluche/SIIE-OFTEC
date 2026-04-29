@@ -28,6 +28,12 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     // TAREAS REALIZADAS
     tareas_realizadas: [],
 
+    // EPPs
+    epps: {},
+
+    // OBSERVACIONES
+    observaciones: '',
+
     // RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD
     firma_tecnico: '',
     firma_cliente: '',
@@ -54,6 +60,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     planificacion: {},
     tareas_realizadas: [],
     epps: {},
+    observaciones: '',
     firma_tecnico: '',
     firma_cliente: '',
     nombre_tecnico: '',
@@ -437,6 +444,20 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
                   {item.label}
                 </label>
               ))}
+            </div>
+          </section>
+
+          {/* OBSERVACIONES */}
+          <section style={{ marginBottom: 24 }}>
+            <h3 style={sectionTitleStyle}>Observaciones</h3>
+            <div style={subSectionStyle}>
+              <textarea
+                className="input"
+                rows="4"
+                value={formData.observaciones}
+                onChange={(e) => handleInputChange('observaciones', e.target.value)}
+                placeholder="Si tuviese alguna observación en la ejecución del servicio, descríbala aquí..."
+              />
             </div>
           </section>
 

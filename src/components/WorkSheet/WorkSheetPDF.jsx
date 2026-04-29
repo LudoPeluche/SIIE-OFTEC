@@ -304,6 +304,19 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           ))}
         </View>
 
+        {/* OBSERVACIONES */}
+        <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
+        <View style={{
+          borderWidth: 1,
+          borderColor: G,
+          padding: 6,
+          minHeight: 30
+        }}>
+          <Text style={{ fontSize: 7, color: data.observaciones ? '#333' : '#999' }}>
+            {data.observaciones || 'No existe ninguna observación.'}
+          </Text>
+        </View>
+
         {/* RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD */}
         <Text style={styles.sectionTitle}>RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD</Text>
         <View style={styles.disclaimer}>
