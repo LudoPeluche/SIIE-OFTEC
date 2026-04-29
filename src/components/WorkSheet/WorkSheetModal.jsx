@@ -3,8 +3,6 @@ import { pdf } from '@react-pdf/renderer'
 import {
   PEOPLE,
   PLANIFICACION_ITEMS,
-  EJECUCION_ITEMS,
-  PELIGROS_ITEMS,
   PERMISOS_ALTO_RIESGO,
   EQUIPO_EMERGENCIA,
   EPPS_ITEMS
@@ -19,8 +17,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     referencia: '',
     responsable: '',
     destino: '',
-    permiso_viaje: null, // null = no seleccionado, true = si, false = no
-    corresponde_viaticos: null,
     acompanante_1: '',
     acompanante_2: '',
     cliente: '',
@@ -31,16 +27,8 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     // CHECK LIST - Planificación del Servicio (cada item tiene: si, no, noAplica)
     planificacion: {},
 
-    // EJECUCIÓN DEL SERVICIO (cada item tiene: si, no, noAplica)
-    ejecucion: {},
-    personas_riesgo: '', // ¿Cuántas personas están en riesgo?
-    riesgo_rating: 0, // R= valor numérico
-
     // TAREAS REALIZADAS
     tareas_realizadas: [],
-
-    // PELIGROS (checkboxes simples)
-    peligros: {},
 
     // PERMISOS ACTIVIDADES ALTO RIESGO (checkboxes simples)
     permisos_alto_riesgo: {},
@@ -72,8 +60,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     referencia: '',
     responsable: '',
     destino: '',
-    permiso_viaje: null,
-    corresponde_viaticos: null,
     acompanante_1: '',
     acompanante_2: '',
     cliente: '',
@@ -81,11 +67,7 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     area_ejecucion: '',
     descripcion_servicio: '',
     planificacion: {},
-    ejecucion: {},
-    personas_riesgo: '',
-    riesgo_rating: 0,
     tareas_realizadas: [],
-    peligros: {},
     permisos_alto_riesgo: {},
     equipo_emergencia: {},
     epps: {},
@@ -415,55 +397,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div className="field">
-                  <label>¿Corresponde permiso de viaje?</label>
-                  <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input
-                        type="radio"
-                        name="permiso_viaje"
-                        checked={formData.permiso_viaje === true}
-                        onChange={() => handleInputChange('permiso_viaje', true)}
-                      />
-                      Sí
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input
-                        type="radio"
-                        name="permiso_viaje"
-                        checked={formData.permiso_viaje === false}
-                        onChange={() => handleInputChange('permiso_viaje', false)}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-                <div className="field">
-                  <label>¿Corresponde viáticos?</label>
-                  <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input
-                        type="radio"
-                        name="corresponde_viaticos"
-                        checked={formData.corresponde_viaticos === true}
-                        onChange={() => handleInputChange('corresponde_viaticos', true)}
-                      />
-                      Sí
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input
-                        type="radio"
-                        name="corresponde_viaticos"
-                        checked={formData.corresponde_viaticos === false}
-                        onChange={() => handleInputChange('corresponde_viaticos', false)}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                <div className="field">
                   <label>Acompañante I</label>
                   <select
                     className="input"
@@ -510,42 +443,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
             </div>
           </section>
 
-          {/* EJECUCIÓN DEL SERVICIO */}
-          <section style={{ marginBottom: 24 }}>
-            <h3 style={sectionTitleStyle}>EJECUCIÓN DEL SERVICIO</h3>
-            <div style={subSectionStyle}>
-              {EJECUCION_ITEMS.map((item) => (
-                <TriStateRadio key={item.key} section="ejecucion" itemKey={item.key} label={item.label} />
-              ))}
-
-              <div style={{ marginTop: 16, padding: 12, background: 'rgba(239,68,68,0.1)', borderRadius: 8 }}>
-                <div className="field" style={{ marginBottom: 12 }}>
-                  <label style={{ color: 'var(--bad)', fontWeight: 600 }}>
-                    ¿Cuántas personas están en riesgo de sufrir un accidente por sus actividades?
-                  </label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={formData.personas_riesgo}
-                    onChange={(e) => handleInputChange('personas_riesgo', e.target.value)}
-                    placeholder="Número de personas"
-                    style={{ maxWidth: 200 }}
-                  />
-                </div>
-                <div className="field">
-                  <label>R= (Valor de riesgo)</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={formData.riesgo_rating}
-                    onChange={(e) => handleInputChange('riesgo_rating', e.target.value)}
-                    style={{ maxWidth: 100 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* TAREAS REALIZADAS */}
           <section style={{ marginBottom: 24 }}>
             <h3 style={sectionTitleStyle}>TAREAS REALIZADAS</h3>
@@ -560,12 +457,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
                 </span>
               )}
             </div>
-          </section>
-
-          {/* PELIGROS */}
-          <section style={{ marginBottom: 24 }}>
-            <h3 style={sectionTitleStyle}>PELIGROS</h3>
-            <CheckboxGrid items={PELIGROS_ITEMS} section="peligros" columns={3} />
           </section>
 
           {/* PERMISOS, EQUIPO DE EMERGENCIA, EPPs - Layout de 3 columnas */}
