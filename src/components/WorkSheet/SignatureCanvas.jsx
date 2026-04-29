@@ -4,12 +4,20 @@ import SignatureCanvas from 'react-signature-canvas'
 export default function SignatureCanvasComponent({ label, value, onChange, required = false }) {
   const sigCanvas = useRef(null)
   const [isEmpty, setIsEmpty] = useState(true)
+  const fromInternal = useRef(false)
 
   useEffect(() => {
-    // Si hay un valor previo (Base64), cargarlo en el canvas
+    // Solo cargar desde props cuando el cambio viene de afuera (no de nuestro propio onChange)
+    if (fromInternal.current) {
+      fromInternal.current = false
+      return
+    }
     if (value && sigCanvas.current) {
       sigCanvas.current.fromDataURL(value)
       setIsEmpty(false)
+    } else if (!value && sigCanvas.current) {
+      sigCanvas.current.clear()
+      setIsEmpty(true)
     }
   }, [value])
 
@@ -17,6 +25,7 @@ export default function SignatureCanvasComponent({ label, value, onChange, requi
     if (sigCanvas.current) {
       sigCanvas.current.clear()
       setIsEmpty(true)
+      fromInternal.current = true
       onChange('')
     }
   }
@@ -24,7 +33,7 @@ export default function SignatureCanvasComponent({ label, value, onChange, requi
   const handleEnd = () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       setIsEmpty(false)
-      // Exportar a Base64 PNG
+      fromInternal.current = true
       const dataURL = sigCanvas.current.toDataURL('image/png')
       onChange(dataURL)
     }

@@ -1,10 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
-import {
-  PLANIFICACION_ITEMS,
-  PERMISOS_ALTO_RIESGO,
-  EQUIPO_EMERGENCIA,
-  EPPS_ITEMS
-} from '../../constants'
+import { PLANIFICACION_ITEMS } from '../../constants'
 
 const G = '#22c55e'
 
@@ -75,7 +70,7 @@ const styles = StyleSheet.create({
   cellLabel: { fontSize: 6, color: '#666', marginBottom: 1 },
   cellValue: { fontSize: 7, color: '#000' },
 
-  checkbox: {
+  radioBox: {
     width: 7,
     height: 7,
     borderWidth: 1,
@@ -84,10 +79,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  checkboxChecked: { backgroundColor: G },
-  checkboxX: { fontSize: 5, color: '#fff', fontWeight: 'bold' },
-  checkboxLabel: { fontSize: 6, flex: 1 },
-  checkboxRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 1 },
+  radioBoxChecked: { backgroundColor: G },
+  radioX: { fontSize: 5, color: '#fff', fontWeight: 'bold' },
 
   radioGroup: { flexDirection: 'row', marginTop: 2 },
   radioOption: { flexDirection: 'row', alignItems: 'center', marginRight: 5 },
@@ -114,34 +107,6 @@ const styles = StyleSheet.create({
     padding: 3,
     borderRightWidth: 1,
     borderRightColor: G
-  },
-
-  threeColSection: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: G,
-    borderTopWidth: 1
-  },
-  threeColItem: {
-    flex: 1,
-    padding: 4,
-    borderRightWidth: 1,
-    borderRightColor: G
-  },
-  threeColTitle: {
-    fontSize: 6,
-    fontWeight: 'bold',
-    color: G,
-    marginBottom: 3,
-    textTransform: 'uppercase'
-  },
-
-  observacionesBox: {
-    borderWidth: 1,
-    borderColor: G,
-    borderTopWidth: 0,
-    padding: 4,
-    minHeight: 24
   },
 
   signatureSection: {
@@ -180,21 +145,12 @@ const styles = StyleSheet.create({
   }
 })
 
-const Checkbox = ({ checked, label }) => (
-  <View style={styles.checkboxRow}>
-    <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-      {checked && <Text style={styles.checkboxX}>X</Text>}
-    </View>
-    <Text style={styles.checkboxLabel}>{label}</Text>
-  </View>
-)
-
 const RadioOptions = ({ value }) => (
   <View style={styles.radioGroup}>
     {[['si', 'Sí'], ['no', 'No'], ['noAplica', 'N/A']].map(([v, label]) => (
       <View key={v} style={styles.radioOption}>
-        <View style={[styles.checkbox, value === v && styles.checkboxChecked]}>
-          {value === v && <Text style={styles.checkboxX}>X</Text>}
+        <View style={[styles.radioBox, value === v && styles.radioBoxChecked]}>
+          {value === v && <Text style={styles.radioX}>X</Text>}
         </View>
         <Text style={styles.radioLabel}>{label}</Text>
       </View>
@@ -327,35 +283,6 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
               </Text>
             </View>
           )}
-        </View>
-
-        {/* PERMISOS / EQUIPO DE EMERGENCIA / EPPs */}
-        <Text style={styles.sectionTitle}>PERMISOS / EQUIPO DE EMERGENCIA / EPPs</Text>
-        <View style={styles.threeColSection}>
-          <View style={styles.threeColItem}>
-            <Text style={styles.threeColTitle}>Permisos para Actividades de Alto Riesgo</Text>
-            {PERMISOS_ALTO_RIESGO.map((item) => (
-              <Checkbox key={item.key} checked={data.permisos_alto_riesgo?.[item.key]} label={item.label} />
-            ))}
-          </View>
-          <View style={styles.threeColItem}>
-            <Text style={styles.threeColTitle}>Equipo de Emergencia</Text>
-            {EQUIPO_EMERGENCIA.map((item) => (
-              <Checkbox key={item.key} checked={data.equipo_emergencia?.[item.key]} label={item.label} />
-            ))}
-          </View>
-          <View style={[styles.threeColItem, { borderRightWidth: 0 }]}>
-            <Text style={styles.threeColTitle}>EPPs</Text>
-            {EPPS_ITEMS.map((item) => (
-              <Checkbox key={item.key} checked={data.epps?.[item.key]} label={item.label} />
-            ))}
-          </View>
-        </View>
-
-        {/* OBSERVACIONES */}
-        <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
-        <View style={styles.observacionesBox}>
-          <Text style={{ fontSize: 7, color: '#333' }}>{data.observaciones || ''}</Text>
         </View>
 
         {/* RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD */}

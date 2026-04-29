@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import {
   PEOPLE,
-  PLANIFICACION_ITEMS,
-  PERMISOS_ALTO_RIESGO,
-  EQUIPO_EMERGENCIA,
-  EPPS_ITEMS
+  PLANIFICACION_ITEMS
 } from '../../constants'
 import SignatureCanvasComponent from './SignatureCanvas'
 import TaskTable from './TaskTable'
@@ -29,19 +26,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
 
     // TAREAS REALIZADAS
     tareas_realizadas: [],
-
-    // PERMISOS ACTIVIDADES ALTO RIESGO (checkboxes simples)
-    permisos_alto_riesgo: {},
-
-    // EQUIPO DE EMERGENCIA (checkboxes simples)
-    equipo_emergencia: {},
-
-    // EPPs (checkboxes simples)
-    epps: {},
-
-    // OBSERVACIONES
-    observaciones: '',
-    ficha_trabajo_ok: null, // Si, No
 
     // RECEPCIÓN Y EVALUACIÓN DE CONFORMIDAD
     firma_tecnico: '',
@@ -68,11 +52,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
     equipos_intervenidos: '',
     planificacion: {},
     tareas_realizadas: [],
-    permisos_alto_riesgo: {},
-    equipo_emergencia: {},
-    epps: {},
-    observaciones: '',
-    ficha_trabajo_ok: null,
     firma_tecnico: '',
     firma_cliente: '',
     nombre_tecnico: '',
@@ -116,17 +95,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
         return newErrors
       })
     }
-  }
-
-  // Para checkboxes simples (peligros, epps, etc)
-  const handleCheckboxChange = (section, key) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [key]: !prev[section][key]
-      }
-    }))
   }
 
   // Para items con opciones Si/No/NoAplica
@@ -235,30 +203,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
           No Aplica
         </label>
       </div>
-    </div>
-  )
-
-  // Componente para sección de checkboxes
-  const CheckboxGrid = ({ items, section, columns = 3 }) => (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(${columns}, 1fr)`,
-      gap: 8,
-      background: 'rgba(255,255,255,0.02)',
-      padding: 16,
-      borderRadius: 8
-    }}>
-      {items.map((item) => (
-        <label key={item.key} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 13 }}>
-          <input
-            type="checkbox"
-            checked={!!formData[section]?.[item.key]}
-            onChange={() => handleCheckboxChange(section, item.key)}
-            style={{ marginRight: 8 }}
-          />
-          {item.label}
-        </label>
-      ))}
     </div>
   )
 
@@ -466,165 +410,6 @@ export default function WorkSheetModal({ workOrder, open, onClose, onSave }) {
                   {errors.tareas_realizadas}
                 </span>
               )}
-            </div>
-          </section>
-
-          {/* PERMISOS, EQUIPO DE EMERGENCIA, EPPs - Layout de 3 columnas */}
-          <section style={{ marginBottom: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-              {/* PERMISOS PARA ACTIVIDADES DE ALTO RIESGO */}
-              <div>
-                <h4 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--ok)',
-                  marginBottom: 12,
-                  textTransform: 'uppercase'
-                }}>
-                  Permisos para Actividades de Alto Riesgo
-                </h4>
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
-                  {PERMISOS_ALTO_RIESGO.map((item) => (
-                    <label key={item.key} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      padding: '6px 0',
-                      borderBottom: '1px solid var(--line)'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={!!formData.permisos_alto_riesgo?.[item.key]}
-                        onChange={() => handleCheckboxChange('permisos_alto_riesgo', item.key)}
-                        style={{ marginRight: 8 }}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* EQUIPO DE EMERGENCIA */}
-              <div>
-                <h4 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--ok)',
-                  marginBottom: 12,
-                  textTransform: 'uppercase'
-                }}>
-                  Equipo de Emergencia
-                </h4>
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
-                  {EQUIPO_EMERGENCIA.map((item) => (
-                    <label key={item.key} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      padding: '6px 0',
-                      borderBottom: '1px solid var(--line)'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={!!formData.equipo_emergencia?.[item.key]}
-                        onChange={() => handleCheckboxChange('equipo_emergencia', item.key)}
-                        style={{ marginRight: 8 }}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* EPPs */}
-              <div>
-                <h4 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--ok)',
-                  marginBottom: 12,
-                  textTransform: 'uppercase'
-                }}>
-                  EPPs
-                </h4>
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
-                  {EPPS_ITEMS.map((item) => (
-                    <label key={item.key} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      padding: '6px 0',
-                      borderBottom: '1px solid var(--line)'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={!!formData.epps?.[item.key]}
-                        onChange={() => handleCheckboxChange('epps', item.key)}
-                        style={{ marginRight: 8 }}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* OBSERVACIONES */}
-          <section style={{ marginBottom: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
-              <div>
-                <h4 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--ok)',
-                  marginBottom: 12,
-                  textTransform: 'uppercase'
-                }}>
-                  Observaciones
-                </h4>
-                <textarea
-                  className="input"
-                  rows="4"
-                  value={formData.observaciones}
-                  onChange={(e) => handleInputChange('observaciones', e.target.value)}
-                  placeholder="Si tuviese alguna observación en la ejecución del servicio, descríbala aquí..."
-                />
-              </div>
-              <div>
-                <h4 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--ok)',
-                  marginBottom: 12,
-                  textTransform: 'uppercase'
-                }}>
-                  Ficha de trabajo
-                </h4>
-                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="ficha_trabajo_ok"
-                      checked={formData.ficha_trabajo_ok === true}
-                      onChange={() => handleInputChange('ficha_trabajo_ok', true)}
-                    />
-                    Sí
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="ficha_trabajo_ok"
-                      checked={formData.ficha_trabajo_ok === false}
-                      onChange={() => handleInputChange('ficha_trabajo_ok', false)}
-                    />
-                    No
-                  </label>
-                </div>
-              </div>
             </div>
           </section>
 
