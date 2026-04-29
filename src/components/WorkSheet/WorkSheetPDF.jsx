@@ -273,50 +273,46 @@ export default function WorkSheetPDF({ data, workOrderCode }) {
           ))}
         </View>
 
-        {/* TAREAS y OBSERVACIONES comparten el espacio restante en mitades iguales */}
-        <View style={{ flex: 1, flexDirection: 'column' }}>
+        {/* Contenedor que toma todo el espacio restante de la hoja */}
+        <View style={{ flex: 1 }}>
 
-          {/* TAREAS REALIZADAS */}
-          <View style={{ flex: 1, flexDirection: 'column' }}>
-            <Text style={styles.sectionTitle}>TAREAS REALIZADAS</Text>
-            <View style={[styles.table, { flex: 1 }]}>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderCell, { width: 20 }]}>N°</Text>
-                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>DETALLE DE TAREAS/ACTIVIDADES</Text>
-                <Text style={[styles.tableHeaderCell, { width: 75, borderRightWidth: 0 }]}>RESPONSABLE</Text>
-              </View>
-              {data.tareas_realizadas && data.tareas_realizadas.length > 0 ? (
-                data.tareas_realizadas.map((task, idx) => (
-                  <View key={idx} style={styles.tableRow}>
-                    <Text style={[styles.tableCell, { width: 20, textAlign: 'center' }]}>{task.numero}</Text>
-                    <Text style={[styles.tableCell, { flex: 1 }]}>{task.detalle || ''}</Text>
-                    <Text style={[styles.tableCell, { width: 75, borderRightWidth: 0 }]}>{task.responsable || ''}</Text>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.tableRow}>
-                  <Text style={[styles.tableCell, { flex: 1, textAlign: 'center', borderRightWidth: 0 }]}>
-                    Sin tareas registradas
-                  </Text>
+          {/* TAREAS REALIZADAS — la tabla crece con casillas en blanco para llenar su mitad */}
+          <Text style={styles.sectionTitle}>TAREAS REALIZADAS</Text>
+          <View style={[styles.table, { flex: 1 }]}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderCell, { width: 20 }]}>N°</Text>
+              <Text style={[styles.tableHeaderCell, { flex: 1 }]}>DETALLE DE TAREAS/ACTIVIDADES</Text>
+              <Text style={[styles.tableHeaderCell, { width: 75, borderRightWidth: 0 }]}>RESPONSABLE</Text>
+            </View>
+            {data.tareas_realizadas && data.tareas_realizadas.length > 0 ? (
+              data.tareas_realizadas.map((task, idx) => (
+                <View key={idx} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, { width: 20, textAlign: 'center' }]}>{task.numero}</Text>
+                  <Text style={[styles.tableCell, { flex: 1 }]}>{task.detalle || ''}</Text>
+                  <Text style={[styles.tableCell, { width: 75, borderRightWidth: 0 }]}>{task.responsable || ''}</Text>
                 </View>
-              )}
-              {/* Filler — casillas en blanco para igualar altura con Observaciones */}
-              <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: G, flexDirection: 'row' }}>
-                <View style={{ width: 20, borderRightWidth: 1, borderRightColor: G }} />
-                <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: G }} />
-                <View style={{ width: 75 }} />
+              ))
+            ) : (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCell, { flex: 1, textAlign: 'center', borderRightWidth: 0 }]}>
+                  Sin tareas registradas
+                </Text>
               </View>
+            )}
+            {/* Casillas en blanco — llenan el espacio sobrante de la tabla */}
+            <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: G, flexDirection: 'row' }}>
+              <View style={{ width: 20, borderRightWidth: 1, borderRightColor: G }} />
+              <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: G }} />
+              <View style={{ width: 75 }} />
             </View>
           </View>
 
-          {/* OBSERVACIONES */}
-          <View style={{ flex: 1, flexDirection: 'column' }}>
-            <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
-            <View style={{ flex: 1, borderWidth: 1, borderColor: G, padding: 6 }}>
-              <Text style={{ fontSize: 7, color: (data.observaciones || '').trim() ? '#333' : '#999' }}>
-                {(data.observaciones || '').trim() || 'No existe ninguna observación.'}
-              </Text>
-            </View>
+          {/* OBSERVACIONES — altura compacta fija debajo de tareas */}
+          <Text style={styles.sectionTitle}>OBSERVACIONES</Text>
+          <View style={{ minHeight: 55, borderWidth: 1, borderColor: G, padding: 6 }}>
+            <Text style={{ fontSize: 7, color: (data.observaciones || '').trim() ? '#333' : '#999' }}>
+              {(data.observaciones || '').trim() || 'No existe ninguna observación.'}
+            </Text>
           </View>
 
         </View>
